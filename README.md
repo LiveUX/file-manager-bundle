@@ -87,7 +87,7 @@ liveux_file_manager:
             label: 'Media Library'
             driver: LocalFileSystem
             path: '%kernel.project_dir%/public/uploads'
-            public_url: '/uploads'
+            url_prefix: '/uploads'
     profiles:
         default:
             volumes: [uploads]
