@@ -12,13 +12,25 @@ Modern, high-performance **Symfony UX File Manager & Digital Asset Manager (DAM)
 
 **Documentation (12 Languages):** [English](docs/en/README.md) · [Türkçe](docs/tr/README.md) · [Français](docs/fr/README.md) · [Deutsch](docs/de/README.md) · [Español](docs/es/README.md) · [العربية](docs/ar/README.md) · [Italiano](docs/it/README.md) · [Português](docs/pt/README.md) · [Nederlands](docs/nl/README.md) · [Polski](docs/pl/README.md) · [日本語](docs/ja/README.md) · [简体中文](docs/zh_CN/README.md) · [Changelog](CHANGELOG.md)
 
-## Interactive Preview
+## Interactive Preview & Full HD Video Walkthrough
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.shields.io/badge/YouTube-Watch_Full_14--Chapter_1080p_Showcase_(03:52)-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Full 14-Chapter 1080p Showcase on YouTube">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.youtube.com/vi/H2CAf0RiDd8/maxresdefault.jpg" alt="LiveUX FileManagerBundle — Full 14-Chapter 1080p YouTube Showcase" width="100%">
+  </a>
+</p>
 
 <p align="center">
   <img src="docs/images/demo-showcase.gif" alt="LiveUX FileManagerBundle Interactive Demo" width="100%">
 </p>
 
-> Full 10-chapter Full HD (1080p) walkthrough video for YouTube / Releases: [`docs/images/demo-youtube-showcase.mp4`](docs/images/demo-youtube-showcase.mp4) · Short 20s preview: [`docs/images/demo-showcase.mp4`](docs/images/demo-showcase.mp4)
+> **Full 14-Chapter Full HD (1080p) Walkthrough:** [Watch on YouTube](https://www.youtube.com/watch?v=H2CAf0RiDd8) · Local MP4: [`docs/images/demo-youtube-showcase.mp4`](docs/images/demo-youtube-showcase.mp4) · Short 20s preview: [`docs/images/demo-showcase.mp4`](docs/images/demo-showcase.mp4)
 
 ## Highlights
 - **Hybrid 0ms Speed:** Fast SSR TwigComponent + in-memory Stimulus cache + full folder tree loaded once + lightweight JSON API.

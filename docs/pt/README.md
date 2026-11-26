@@ -17,10 +17,22 @@ O **LiveUX FileManagerBundle** é um **Gerenciador de Arquivos e Gerenciador de 
 ## Prévia ao Vivo e Capturas de Tela
 
 <p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.shields.io/badge/YouTube-Watch_Full_14--Chapter_1080p_Showcase_(03:52)-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Full 14-Chapter 1080p Showcase on YouTube">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.youtube.com/vi/H2CAf0RiDd8/maxresdefault.jpg" alt="LiveUX FileManagerBundle — Full 14-Chapter 1080p YouTube Showcase" width="100%">
+  </a>
+</p>
+
+<p align="center">
   <img src="../images/demo-showcase.gif" alt="Demonstração interativa do LiveUX FileManagerBundle" width="100%">
 </p>
 
-> **Vídeo de apresentação em Full HD (1080p, ~3 min) em 10 capítulos** para YouTube e releases: [`docs/images/demo-youtube-showcase.mp4`](../images/demo-youtube-showcase.mp4) · Prévia curta: [`docs/images/demo-showcase.mp4`](../images/demo-showcase.mp4)
+> **Vídeo de apresentação em Full HD (1080p, ~3 min) em 10 capítulos** para YouTube e releases: [YouTube (1080p)](https://www.youtube.com/watch?v=H2CAf0RiDd8) · [`docs/images/demo-youtube-showcase.mp4`](../images/demo-youtube-showcase.mp4) · Prévia curta: [`docs/images/demo-showcase.mp4`](../images/demo-showcase.mp4)
 
 | Modo Claro (`Light`) | Modo Escuro (`Dark`) |
 | :---: | :---: |

@@ -17,10 +17,22 @@
 ## ライブプレビュー＆スクリーンショット
 
 <p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.shields.io/badge/YouTube-Watch_Full_14--Chapter_1080p_Showcase_(03:52)-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Full 14-Chapter 1080p Showcase on YouTube">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.youtube.com/vi/H2CAf0RiDd8/maxresdefault.jpg" alt="LiveUX FileManagerBundle — Full 14-Chapter 1080p YouTube Showcase" width="100%">
+  </a>
+</p>
+
+<p align="center">
   <img src="../images/demo-showcase.gif" alt="LiveUX FileManagerBundle インタラクティブデモ" width="100%">
 </p>
 
-> **YouTube・リリース向けのフル HD（1080p、約 3 分）全 10 チャプター紹介動画:** [`docs/images/demo-youtube-showcase.mp4`](../images/demo-youtube-showcase.mp4) · ショートプレビュー: [`docs/images/demo-showcase.mp4`](../images/demo-showcase.mp4)
+> **YouTube・リリース向けのフル HD（1080p、約 3 分）全 10 チャプター紹介動画:** [YouTube (1080p)](https://www.youtube.com/watch?v=H2CAf0RiDd8) · [`docs/images/demo-youtube-showcase.mp4`](../images/demo-youtube-showcase.mp4) · ショートプレビュー: [`docs/images/demo-showcase.mp4`](../images/demo-showcase.mp4)
 
 | ライトモード（`Light`） | ダークモード（`Dark`） |
 | :---: | :---: |

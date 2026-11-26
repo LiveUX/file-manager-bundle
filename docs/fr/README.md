@@ -17,10 +17,22 @@
 ## Aperçu interactif et captures d'écran
 
 <p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.shields.io/badge/YouTube-Watch_Full_14--Chapter_1080p_Showcase_(03:52)-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Full 14-Chapter 1080p Showcase on YouTube">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.youtube.com/vi/H2CAf0RiDd8/maxresdefault.jpg" alt="LiveUX FileManagerBundle — Full 14-Chapter 1080p YouTube Showcase" width="100%">
+  </a>
+</p>
+
+<p align="center">
   <img src="../images/demo-showcase.gif" alt="Démo interactive de LiveUX FileManagerBundle" width="100%">
 </p>
 
-> **Vidéo de présentation Full HD (1080p, ~3 min) en 10 chapitres** pour YouTube et les notes de version : [`docs/images/demo-youtube-showcase.mp4`](../images/demo-youtube-showcase.mp4) · Aperçu court : [`docs/images/demo-showcase.mp4`](../images/demo-showcase.mp4)
+> **Vidéo de présentation Full HD (1080p, ~3 min) en 10 chapitres** pour YouTube et les notes de version : [YouTube (1080p)](https://www.youtube.com/watch?v=H2CAf0RiDd8) · [`docs/images/demo-youtube-showcase.mp4`](../images/demo-youtube-showcase.mp4) · Aperçu court : [`docs/images/demo-showcase.mp4`](../images/demo-showcase.mp4)
 
 | Mode clair (`Light`) | Mode sombre (`Dark`) |
 | :---: | :---: |

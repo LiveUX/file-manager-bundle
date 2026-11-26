@@ -17,10 +17,22 @@
 ## 实时预览与界面截图
 
 <p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.shields.io/badge/YouTube-Watch_Full_14--Chapter_1080p_Showcase_(03:52)-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Full 14-Chapter 1080p Showcase on YouTube">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=H2CAf0RiDd8" target="_blank">
+    <img src="https://img.youtube.com/vi/H2CAf0RiDd8/maxresdefault.jpg" alt="LiveUX FileManagerBundle — Full 14-Chapter 1080p YouTube Showcase" width="100%">
+  </a>
+</p>
+
+<p align="center">
   <img src="../images/demo-showcase.gif" alt="LiveUX FileManagerBundle 交互式演示" width="100%">
 </p>
 
-> **全高清（1080p，约 3 分钟）10 章节功能演示视频**（适用于 YouTube 及版本发布）：[`docs/images/demo-youtube-showcase.mp4`](../images/demo-youtube-showcase.mp4) · 精简预览版：[`docs/images/demo-showcase.mp4`](../images/demo-showcase.mp4)
+> **全高清（1080p，约 3 分钟）10 章节功能演示视频**（适用于 YouTube 及版本发布）：[YouTube (1080p)](https://www.youtube.com/watch?v=H2CAf0RiDd8) · [`docs/images/demo-youtube-showcase.mp4`](../images/demo-youtube-showcase.mp4) · 精简预览版：[`docs/images/demo-showcase.mp4`](../images/demo-showcase.mp4)
 
 | 浅色模式（`Light`） | 深色模式（`Dark`） |
 | :---: | :---: |
