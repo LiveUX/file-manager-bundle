@@ -1,6 +1,6 @@
 {
     "name": "liveux/file-manager-bundle",
-    "description": "Modern, zero-dependency Symfony UX File Manager & Digital Asset Manager (DAM) powered by TwigComponent, Stimulus, Flysystem, AssetMapper & Webpack Encore with 9 built-in themes, 6 SVG icon sets, 5 FormType variants, multi-volume (Local/S3), chunked upload, inline image editor, trash, RBAC Voter security, and built-in AI Agent Skills.",
+    "description": "Zero-dependency Symfony UX File Manager & DAM (TwigComponent, Stimulus, Flysystem, AssetMapper & Encore) with 9 themes, 6 icon sets, 12 languages, 9 editors, EasyAdmin 4/5, S3 & AI Skills.",
     "type": "symfony-bundle",
     "license": "MIT",
     "homepage": "https://github.com/LiveUX/file-manager-bundle",
