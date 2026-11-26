@@ -29,7 +29,7 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 final class FileManagerBundle extends AbstractBundle
 {
-    public const string VERSION = '0.1.1';
+    public const string VERSION = '0.1.2';
 
     protected string $extensionAlias = Configuration::ALIAS;
 

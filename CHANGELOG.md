@@ -10,6 +10,16 @@ This project adheres to [Semantic Versioning](https://semver.org/) and follows [
 [Unreleased]
 ------------
 
+0.1.2 (2026-11-26)
+------------------
+
+### Fixed
+ * **Flaky Test Elimination:** Guarded `mkdir($orphanDir)` in `MaintenanceCommandsTest` when the `ff` thumbnail shard directory already exists.
+
+### Documentation & Packagist
+ * Enriched root `README.md` with CI/Packagist/Symfony/PHP/MIT badges, absolute GitHub raw image URLs (full Packagist rendering), 10-category Feature Matrix, and 4-step Quick Start.
+ * Shortened `composer.json` description to 190 characters (preventing Packagist truncation) and expanded Packagist discovery keywords (`symfony-bundle`, `live-component`, `easyadmin`, `ckeditor`, `tiptap`, `rtl`).
+
 0.1.1 (2026-11-26)
 ------------------
 
