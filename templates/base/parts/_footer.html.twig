@@ -1,0 +1,30 @@
+{% trans_default_domain 'LiveUXFileManagerBundle' %}
+{% set loc = fmLocale|default('en') %}
+{% set caps = this.capabilities %}
+{% set ctrl = 'liveux--file-manager-bundle--browser' %}
+
+{% if this.mode != 'inline' %}
+<div class="liveux-fm-footer">
+    <div class="liveux-fm-muted liveux-fm-truncate liveux-fm-minw-0 liveux-fm-footer-status" role="status" style="font-size: 0.74rem;" data-{{ ctrl }}-target="footerStatus">
+        {% if caps.showFooter %}{{ 'footer.hint'|liveux_fm_trans({}, loc) }}{% endif %}
+    </div>
+    <div class="liveux-fm-row-sm liveux-fm-shrink-0 liveux-fm-footer-controls">
+        {% if caps.showPagination %}
+            <div class="liveux-fm-d-flex liveux-fm-items-center liveux-fm-gap-2 liveux-fm-footer-pager" data-{{ ctrl }}-target="paginationBar">
+                {% if caps.showPerPageSelector %}
+                    <select class="liveux-fm-select liveux-fm-select-xs liveux-fm-hidden" title="{{ 'sort.limit'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'sort.limit'|liveux_fm_trans({}, loc) }}" data-{{ ctrl }}-target="perPageSelect" data-action="change->{{ ctrl }}#setPerPage">
+                        {% for opt in this.perPageOptions %}
+                            <option value="{{ opt }}" {{ this.perPage == opt ? 'selected' : '' }}>{{ opt }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+                <div class="liveux-fm-row-sm liveux-fm-shrink-0" data-{{ ctrl }}-target="pagerGroup"></div>
+            </div>
+        {% endif %}
+        <div class="liveux-fm-row-sm liveux-fm-footer-actions">
+            <button type="button" class="liveux-fm-btn" data-action="{{ ctrl }}#closeDialog">{{ 'actions.cancel'|liveux_fm_trans({}, loc) }}</button>
+            <button type="button" class="liveux-fm-btn liveux-fm-btn-primary" data-{{ ctrl }}-target="confirmSelectionBtn" data-action="{{ ctrl }}#confirmSelection" disabled>{{ 'actions.select'|liveux_fm_trans({}, loc) }}</button>
+        </div>
+    </div>
+</div>
+{% endif %}

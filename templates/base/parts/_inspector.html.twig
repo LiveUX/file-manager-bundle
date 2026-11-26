@@ -1,0 +1,11 @@
+{% trans_default_domain 'LiveUXFileManagerBundle' %}
+{% set loc = fmLocale|default('en') %}
+{% set ctrl = 'liveux--file-manager-bundle--browser' %}
+{% set inspectorMode = profileConfig.ui.inspector_mode ?? 'on_select' %}
+
+{% if inspectorMode != 'hidden' %}
+    <aside class="liveux-fm-inspector {{ inspectorMode == 'always' ? '' : 'liveux-fm-hidden' }}" data-{{ ctrl }}-target="inspector">
+        <span class="liveux-fm-section-label">{{ 'inspector.title'|liveux_fm_trans({}, loc) }}</span>
+        <div class="liveux-fm-empty" style="padding: 24px 8px;">{{ 'inspector.empty'|liveux_fm_trans({}, loc) }}</div>
+    </aside>
+{% endif %}

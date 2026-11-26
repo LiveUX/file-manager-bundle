@@ -1,0 +1,191 @@
+{% trans_default_domain 'LiveUXFileManagerBundle' %}
+{% set loc = fmLocale|default('en') %}
+{% set caps = this.capabilities %}
+{% set ctrl = 'liveux--file-manager-bundle--browser' %}
+{% set iconSetName = this.resolvedIconSet %}
+
+{# Dedicated Floating Context Menu (Desktop) / Bottom Sheet (Mobile) #}
+<div class="liveux-fm-ctx-menu" role="menu" data-{{ ctrl }}-target="contextMenu"></div>
+
+{# Translated Keyboard Shortcuts Dialog Template (Categorized 2-Column, Permission-Aware) #}
+<template data-{{ ctrl }}-target="shortcutsTemplate" data-title="{{ 'shortcuts.title'|liveux_fm_trans({}, loc) }}">
+    <div class="liveux-fm-modal-body liveux-fm-shortcuts-body">
+        <div class="liveux-fm-shortcuts-grid">
+            <div class="liveux-fm-shortcuts-group">
+                <div class="liveux-fm-section-label">{{ 'shortcuts.group_files'|liveux_fm_trans({}, loc) }}</div>
+                {% if caps.createFolder %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.new_folder'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">N</kbd></div>
+                {% endif %}
+                {% if caps.upload %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.upload'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">U</kbd></div>
+                {% endif %}
+                {% if caps.rename %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.rename'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">F2</kbd></div>
+                {% endif %}
+                {% if caps.move or caps.copy %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.move'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">M</kbd></div>
+                {% endif %}
+                {% if caps.clone %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.duplicate'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">D</kbd></div>
+                {% endif %}
+                {% if caps.editMetadata %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.metadata'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">I</kbd></div>
+                {% endif %}
+                {% if caps.editImage %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.edit_image'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">E</kbd></div>
+                {% endif %}
+                {% if caps.download %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.copy_url'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">L</kbd></div>
+                {% endif %}
+                {% if caps.share %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.share_link'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">S</kbd></div>
+                {% endif %}
+                {% if caps.delete %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.delete'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">{{ 'ui.key_delete'|liveux_fm_trans({}, loc) }}</kbd></div>
+                {% endif %}
+            </div>
+
+            <div class="liveux-fm-stack" style="gap: 12px;">
+                <div class="liveux-fm-shortcuts-group">
+                    <div class="liveux-fm-section-label">{{ 'shortcuts.group_navigation'|liveux_fm_trans({}, loc) }}</div>
+                    {% if caps.showSearch %}
+                        <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.search'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">/ · Ctrl+F</kbd></div>
+                    {% endif %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.arrows'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">← → ↑ ↓</kbd></div>
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.open_or_select'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">{{ 'ui.key_enter'|liveux_fm_trans({}, loc) }}</kbd></div>
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.preview'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">{{ 'ui.key_space'|liveux_fm_trans({}, loc) }}</kbd></div>
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.up'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">{{ 'ui.key_backspace'|liveux_fm_trans({}, loc) }}</kbd></div>
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.back'|liveux_fm_trans({}, loc) }} / {{ 'shortcuts.forward'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">{{ this.isRtl ? 'Alt+→ / ←' : 'Alt+← / →' }}</kbd></div>
+                    {% if caps.showRefreshButton %}
+                        <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.refresh'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">R</kbd></div>
+                    {% endif %}
+                </div>
+
+                <div class="liveux-fm-shortcuts-group">
+                    <div class="liveux-fm-section-label">{{ 'shortcuts.group_selection'|liveux_fm_trans({}, loc) }}</div>
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'actions.select_all'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">Ctrl + A</kbd></div>
+                    {% if caps.move or caps.copy %}
+                        <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.clipboard'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">Ctrl+C / X / V</kbd></div>
+                    {% endif %}
+                    {% if caps.upload %}
+                        <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.paste_upload'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">Ctrl + V</kbd></div>
+                    {% endif %}
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.multi_select'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">{{ 'ui.key_multi_select'|liveux_fm_trans({}, loc) }}</kbd></div>
+                    <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.close'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">{{ 'ui.key_esc'|liveux_fm_trans({}, loc) }}</kbd></div>
+                </div>
+
+                <div class="liveux-fm-shortcuts-group">
+                    <div class="liveux-fm-section-label">{{ 'shortcuts.group_view'|liveux_fm_trans({}, loc) }}</div>
+                    {% if caps.showViewToggle %}
+                        <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.toggle_view'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">V</kbd></div>
+                    {% endif %}
+                    {% if caps.showFolderTree %}
+                        <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.toggle_sidebar'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">B</kbd></div>
+                    {% endif %}
+                    {% if caps.showFullscreenButton %}
+                        <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.fullscreen'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">F</kbd></div>
+                    {% endif %}
+                    {% if caps.trashEnabled %}
+                        <div class="liveux-fm-shortcut-row"><span>{{ 'shortcuts.toggle_trash'|liveux_fm_trans({}, loc) }}</span><kbd class="liveux-fm-kbd">T</kbd></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="liveux-fm-modal-footer">
+        <button type="button" class="liveux-fm-btn liveux-fm-btn-primary" style="padding: 5px 14px;" data-fm-cancel>{{ 'actions.ok'|liveux_fm_trans({}, loc) }}</button>
+    </div>
+</template>
+
+{# Corporate About Dialog Template #}
+<template data-{{ ctrl }}-target="aboutTemplate" data-title="{{ 'settings.about'|liveux_fm_trans({}, loc) }}">
+    <div class="liveux-fm-about-hero">
+        <div class="liveux-fm-about-hero-row">
+            <span class="liveux-fm-about-logo" role="img" aria-label="LiveUX for Symfony"></span>
+            <div class="liveux-fm-about-hero-meta">
+                <div class="liveux-fm-row-between" style="gap: 8px;">
+                    <div style="font-size: 0.98rem; font-weight: 700; letter-spacing: -0.01em;">LiveUX FileManagerBundle</div>
+                    <span class="liveux-fm-badge is-pill liveux-fm-mono" style="background: rgba(255,255,255,0.2); color: #ffffff; font-size: 0.7rem; flex-shrink: 0;">v{{ this.bundleVersion }}</span>
+                </div>
+                <a href="https://github.com/LiveUX/file-manager-bundle" target="_blank" rel="noopener noreferrer" class="liveux-fm-mono liveux-fm-about-repo">github.com/LiveUX/file-manager-bundle ↗</a>
+                <p class="liveux-fm-about-tagline">
+                    {{ 'modals.about_tagline'|liveux_fm_trans({}, loc) }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="liveux-fm-modal-body">
+        <div class="liveux-fm-about-card">
+            <div class="liveux-fm-section-label" style="margin-bottom: 8px;">
+                {{ 'modals.about_developer'|liveux_fm_trans({}, loc) }}
+            </div>
+            <div class="liveux-fm-row" style="gap: 10px; margin-bottom: 12px;">
+                <span class="liveux-fm-about-avatar">SK</span>
+                <div>
+                    <div style="font-size: 0.85rem; font-weight: 600;">Sait KURT <span class="liveux-fm-muted" style="font-weight: 400;">(DeSwa)</span></div>
+                    <div class="liveux-fm-muted" style="font-size: 0.7rem;">{{ 'modals.about_role'|liveux_fm_trans({}, loc) }}</div>
+                </div>
+            </div>
+            <div class="liveux-fm-row liveux-fm-row-wrap">
+                <a href="https://github.com/xDeSwa" target="_blank" rel="noopener noreferrer" class="liveux-fm-about-social">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/></svg>
+                    <span>GitHub</span>
+                </a>
+                <a href="https://www.linkedin.com/in/saitkurt" target="_blank" rel="noopener noreferrer" class="liveux-fm-about-social">
+                    <svg width="14" height="14" fill="#0a66c2" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z"/></svg>
+                    <span>LinkedIn</span>
+                </a>
+                <a href="https://www.facebook.com/saitkurt1453" target="_blank" rel="noopener noreferrer" class="liveux-fm-about-social">
+                    <svg width="14" height="14" fill="#1877f2" viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073Z"/></svg>
+                    <span>Facebook</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="liveux-fm-modal-footer is-between">
+        <span class="liveux-fm-muted" style="font-size: 0.7rem;">{{ 'modals.about_license'|liveux_fm_trans({}, loc) }}</span>
+        <button type="button" class="liveux-fm-btn liveux-fm-btn-primary" style="padding: 5px 14px;" data-fm-cancel>{{ 'actions.ok'|liveux_fm_trans({}, loc) }}</button>
+    </div>
+</template>
+
+{# Inline Modal Overlay #}
+{% set modalTitleId = 'liveux-fm-modal-title-' ~ random(100000, 999999) %}
+<div class="liveux-fm-modal-backdrop" data-{{ ctrl }}-target="modalBackdrop" data-action="mousedown->{{ ctrl }}#onModalBackdropMouseDown click->{{ ctrl }}#closeModalFromBackdrop">
+    <div class="liveux-fm-modal-card" role="dialog" aria-modal="true" aria-labelledby="{{ modalTitleId }}" data-action="click->{{ ctrl }}#stopPropagation">
+        <div class="liveux-fm-modal-header">
+            <h6 class="liveux-fm-modal-title" id="{{ modalTitleId }}" data-{{ ctrl }}-target="modalTitle"></h6>
+            <button type="button" class="liveux-fm-modal-close" data-action="{{ ctrl }}#closeModal" aria-label="{{ 'actions.close'|liveux_fm_trans({}, loc) }}" title="{{ 'actions.close'|liveux_fm_trans({}, loc) }}">
+                {{ liveux_fm_icon('close', iconSetName, 15) }}
+            </button>
+        </div>
+        <div class="liveux-fm-modal-content" data-{{ ctrl }}-target="modalBody"></div>
+    </div>
+</div>
+
+{# Universal Lightbox Preview Overlay (Image Gallery + Zoom, PDF, Video, Audio, Text/Code) #}
+<div class="liveux-fm-lightbox liveux-fm-hidden"
+     role="dialog"
+     aria-modal="true"
+     aria-label="{{ 'actions.preview'|liveux_fm_trans({}, loc) }}"
+     data-{{ ctrl }}-target="lightbox"
+     data-action="mousedown->{{ ctrl }}#onModalBackdropMouseDown click->{{ ctrl }}#closeLightboxFromBackdrop">
+    <div class="liveux-fm-lightbox-inner" data-action="click->{{ ctrl }}#stopPropagation">
+        <div class="liveux-fm-lightbox-stage" data-{{ ctrl }}-target="lightboxStage"></div>
+        <div class="liveux-fm-lightbox-bar">
+            <div class="liveux-fm-row-sm liveux-fm-minw-0">
+                <span class="liveux-fm-truncate" data-{{ ctrl }}-target="lightboxCaption"></span>
+                <span class="liveux-fm-mono liveux-fm-muted liveux-fm-text-xs liveux-fm-shrink-0" data-{{ ctrl }}-target="lightboxCounter"></span>
+            </div>
+            <div class="liveux-fm-row-sm liveux-fm-shrink-0" data-{{ ctrl }}-target="lightboxControls">
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-xs" data-lb-nav="prev" data-action="{{ ctrl }}#lightboxPrev" title="{{ 'preview.prev'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'preview.prev'|liveux_fm_trans({}, loc) }}">‹</button>
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-xs" data-lb-nav="next" data-action="{{ ctrl }}#lightboxNext" title="{{ 'preview.next'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'preview.next'|liveux_fm_trans({}, loc) }}">›</button>
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-xs" data-lb-zoom="out" data-action="{{ ctrl }}#lightboxZoomOut" title="{{ 'preview.zoom_out'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'preview.zoom_out'|liveux_fm_trans({}, loc) }}">−</button>
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-xs" data-lb-zoom="reset" data-action="{{ ctrl }}#lightboxZoomReset" title="{{ 'preview.zoom_reset'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'preview.zoom_reset'|liveux_fm_trans({}, loc) }}">100%</button>
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-xs" data-lb-zoom="in" data-action="{{ ctrl }}#lightboxZoomIn" title="{{ 'preview.zoom_in'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'preview.zoom_in'|liveux_fm_trans({}, loc) }}">+</button>
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-xs" data-action="{{ ctrl }}#closeLightbox" title="{{ 'actions.close'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'actions.close'|liveux_fm_trans({}, loc) }}">✕</button>
+            </div>
+        </div>
+    </div>
+</div>

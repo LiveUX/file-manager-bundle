@@ -1,0 +1,67 @@
+{#
+  LiveUX FileManagerBundle — Modular Base Layout
+  Custom themes can extend this template (`{% extends '@LiveUXFileManager/base/layout.html.twig' %}`)
+  and override any named block (fm_topbar, fm_settings_popover, fm_banners, fm_body, fm_sidebar,
+  fm_main, fm_inspector, fm_footer, fm_overlays) individually without duplicating the full markup.
+#}
+{% trans_default_domain 'LiveUXFileManagerBundle' %}
+{% set loc = fmLocale|default('en') %}
+{% set caps = this.capabilities %}
+{% set listing = this.listing %}
+{% set ctrl = 'liveux--file-manager-bundle--browser' %}
+
+{% block fm_shell %}
+<div class="liveux-fm-shell"
+     data-size-tier="{{ this.resolvedItemSizePx <= 132 ? 'compact' : 'normal' }}"
+     data-folder-style="{{ this.resolvedFolderStyle }}"
+     data-sidebar-open="{{ caps.showFolderTree ? 'true' : 'false' }}"
+     style="--liveux-fm-card-min: {{ this.resolvedItemSizePx }}px; --liveux-fm-card-aspect: {{ this.resolvedCardAspectRatio }};"
+     data-{{ ctrl }}-target="shell">
+
+    {# 1. Top Command Bar #}
+    {% block fm_topbar %}
+        {% include '@LiveUXFileManager/base/parts/_topbar.html.twig' %}
+    {% endblock %}
+
+    {# 2. Settings Popover #}
+    {% block fm_settings_popover %}
+        {% include '@LiveUXFileManager/base/parts/_settings_popover.html.twig' %}
+    {% endblock %}
+
+    {# 3. Dynamic Status Toast & Upload Queue #}
+    {% block fm_banners %}
+        <div class="liveux-fm-banner liveux-fm-hidden" role="status" aria-live="polite" data-{{ ctrl }}-target="statusBanner"></div>
+        <div class="liveux-fm-upload-queue liveux-fm-hidden" data-{{ ctrl }}-target="uploadQueue"></div>
+    {% endblock %}
+
+    {# 4. Middle Split Body (Sidebar + Main Workspace + Right Inspector) #}
+    {% block fm_body %}
+        <div class="liveux-fm-body">
+            {% block fm_sidebar %}
+                {% if caps.showFolderTree %}
+                    {% include '@LiveUXFileManager/base/parts/_sidebar.html.twig' %}
+                    <div class="liveux-fm-sidebar-backdrop" aria-hidden="true" data-action="click->{{ ctrl }}#closeMobileSidebar"></div>
+                {% endif %}
+            {% endblock %}
+
+            {% block fm_main %}
+                {% include '@LiveUXFileManager/base/parts/_main.html.twig' %}
+            {% endblock %}
+
+            {% block fm_inspector %}
+                {% include '@LiveUXFileManager/base/parts/_inspector.html.twig' %}
+            {% endblock %}
+        </div>
+    {% endblock %}
+
+    {# 5. Bottom Footer Bar (Modal / OffCanvas Mode) #}
+    {% block fm_footer %}
+        {% include '@LiveUXFileManager/base/parts/_footer.html.twig' %}
+    {% endblock %}
+
+    {# 6. Overlays (Context Menu, Modals, Lightbox, Shortcut/About Templates) #}
+    {% block fm_overlays %}
+        {% include '@LiveUXFileManager/base/parts/_overlays.html.twig' %}
+    {% endblock %}
+</div>
+{% endblock %}

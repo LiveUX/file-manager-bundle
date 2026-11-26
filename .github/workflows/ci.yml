@@ -1,0 +1,122 @@
+name: CI
+
+on:
+    push:
+        branches: [main, '0.*', '1.*']
+    pull_request:
+        branches: [main, '0.*', '1.*']
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    php-tests:
+        name: PHP ${{ matrix.php }} (Symfony ${{ matrix.symfony }}, ${{ matrix.deps }})
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - php: '8.3'
+                      symfony: '6.4.*'
+                      deps: lowest
+                    - php: '8.3'
+                      symfony: '7.2.*'
+                      deps: lowest
+                    - php: '8.3'
+                      symfony: '7.4.*'
+                      deps: highest
+                    - php: '8.4'
+                      symfony: '8.0.*'
+                      deps: highest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup PHP ${{ matrix.php }}
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  extensions: dom, fileinfo, gd, libxml, mbstring, zip
+                  coverage: none
+                  tools: composer:v2
+
+            - name: Validate composer.json
+              run: composer validate --strict
+
+            - name: Constrain Symfony version (${{ matrix.symfony }})
+              run: |
+                  composer config extra.symfony.require "${{ matrix.symfony }}"
+
+            - name: Install Composer dependencies (${{ matrix.deps }})
+              run: |
+                  if [ "${{ matrix.deps }}" = "lowest" ]; then
+                      composer update --prefer-lowest --prefer-stable --no-interaction --no-progress
+                  else
+                      composer update --prefer-stable --no-interaction --no-progress
+                  fi
+
+            - name: Run PHPUnit test suite
+              run: vendor/bin/phpunit
+
+    js-security:
+        name: JavaScript Syntax & DOM Security (Node ${{ matrix.node }})
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                node: ['20', '22']
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js ${{ matrix.node }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+
+            - name: Install esbuild & verify minified assets/dist/ is in sync
+              run: |
+                  npm --prefix assets install --no-audit --no-fund
+                  npm --prefix assets run build:check
+
+            - name: Check JS syntax across all source and minified controllers/adapters
+              run: |
+                  for file in assets/controllers/*.js assets/js/*.js assets/js/integrations/*.js assets/dist/controllers/*.js assets/dist/js/*.js assets/dist/js/integrations/*.js; do
+                      echo "Checking $file"
+                      node --check "$file"
+                  done
+
+            - name: Run DOM & XSS Security tests
+              run: node --test tests/Js/dom_security_test.mjs tests/Js/frontend_audit_test.mjs
+
+    code-quality:
+        name: Static Analysis (PHPStan) & Coding Standards (CS-Fixer)
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup PHP 8.4
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+                  extensions: dom, fileinfo, gd, libxml, mbstring, zip
+                  coverage: none
+                  tools: composer:v2
+
+            - name: Install Composer dependencies
+              run: composer update --prefer-stable --no-interaction --no-progress
+
+            - name: Check Coding Standards (PHP-CS-Fixer)
+              run: composer cs:check
+
+            - name: Run Static Analysis (PHPStan)
+              run: composer stan

@@ -1,0 +1,263 @@
+{% trans_default_domain 'LiveUXFileManagerBundle' %}
+{% set loc = fmLocale|default('en') %}
+{% set caps = this.capabilities %}
+{% set listing = this.listing %}
+{% set orderedVolumes = this.orderedVolumes %}
+{% set totalVolumes = orderedVolumes|length %}
+{% set ctrl = 'liveux--file-manager-bundle--browser' %}
+{% set iconSetName = this.resolvedIconSet %}
+{% set quota = this.quotaSummary %}
+
+<div class="liveux-fm-header liveux-fm-topbar">
+    <div class="liveux-fm-topbar-left">
+        {% if caps.showFolderTree %}
+            <button type="button"
+                    class="liveux-fm-btn liveux-fm-btn-icon liveux-fm-btn-subtle"
+                    title="{{ 'sidebar.toggle'|liveux_fm_trans({}, loc) }} (B)"
+                    aria-label="{{ 'sidebar.toggle'|liveux_fm_trans({}, loc) }}"
+                    data-action="{{ ctrl }}#toggleSidebar">
+                {{ liveux_fm_icon('menu', iconSetName, 15) }}
+            </button>
+        {% endif %}
+
+        {% if caps.showNavButtons and (caps.showHistoryButtons or caps.showUpButton or caps.showRefreshButton) %}
+            <div class="liveux-fm-btn-group liveux-fm-shrink-0">
+                {% if caps.showHistoryButtons %}
+                    <button type="button"
+                            class="liveux-fm-btn liveux-fm-btn-xs liveux-fm-mobile-hide"
+                            data-{{ ctrl }}-target="backBtn"
+                            data-action="{{ ctrl }}#goBack"
+                            title="{{ 'actions.back'|liveux_fm_trans({}, loc) }} ({{ this.isRtl ? 'Alt+→' : 'Alt+←' }})"
+                            aria-label="{{ 'actions.back'|liveux_fm_trans({}, loc) }}"
+                            disabled>
+                        {{ liveux_fm_icon('back', iconSetName, 13) }}
+                    </button>
+                    <button type="button"
+                            class="liveux-fm-btn liveux-fm-btn-xs liveux-fm-mobile-hide"
+                            data-{{ ctrl }}-target="forwardBtn"
+                            data-action="{{ ctrl }}#goForward"
+                            title="{{ 'actions.forward'|liveux_fm_trans({}, loc) }} ({{ this.isRtl ? 'Alt+←' : 'Alt+→' }})"
+                            aria-label="{{ 'actions.forward'|liveux_fm_trans({}, loc) }}"
+                            disabled>
+                        {{ liveux_fm_icon('forward', iconSetName, 13) }}
+                    </button>
+                {% endif %}
+                {% if caps.showUpButton %}
+                    <button type="button"
+                            class="liveux-fm-btn liveux-fm-btn-xs"
+                            data-{{ ctrl }}-target="upBtn"
+                            data-action="{{ ctrl }}#goUp"
+                            title="{{ 'actions.up'|liveux_fm_trans({}, loc) }} ({{ 'ui.key_backspace'|liveux_fm_trans({}, loc) }})"
+                            aria-label="{{ 'actions.up'|liveux_fm_trans({}, loc) }}"
+                            {{ this.path == '' ? 'disabled' : '' }}>
+                        {{ liveux_fm_icon('up', iconSetName, 13) }}
+                    </button>
+                {% endif %}
+                {% if caps.showRefreshButton %}
+                    <button type="button"
+                            class="liveux-fm-btn liveux-fm-btn-xs"
+                            data-action="{{ ctrl }}#refreshCurrent"
+                            title="{{ 'actions.refresh'|liveux_fm_trans({}, loc) }} (R)"
+                            aria-label="{{ 'actions.refresh'|liveux_fm_trans({}, loc) }}">
+                        {{ liveux_fm_icon('refresh', iconSetName, 13) }}
+                    </button>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if totalVolumes > 1 %}
+            <select class="liveux-fm-select liveux-fm-select-xs liveux-fm-shrink-0 {{ caps.showFolderTree ? 'liveux-fm-sidebar-fallback' : '' }}"
+                    aria-label="{{ 'ui.select_volume'|liveux_fm_trans({}, loc) }}"
+                    data-{{ ctrl }}-target="volumeSelect"
+                    data-action="change->{{ ctrl }}#switchVolume">
+                {% for vol in orderedVolumes %}
+                    <option value="{{ vol.name }}" {{ this.volume == vol.name ? 'selected' : '' }}>{{ vol.isNetwork() ? '☁ ' : '' }}{{ vol.label }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+
+        {% if caps.showBreadcrumbs %}
+            <nav aria-label="{{ 'ui.breadcrumbs_label'|liveux_fm_trans({}, loc) }}" class="liveux-fm-breadcrumbs" data-{{ ctrl }}-target="breadcrumbs">
+                <a href="#" class="liveux-fm-crumb-link" data-action="{{ ctrl }}#navigate:prevent" data-path="">{{ this.activeVolume.label }}</a>
+            </nav>
+        {% else %}
+            <strong class="liveux-fm-title">{{ 'title'|liveux_fm_trans({}, loc) }}</strong>
+        {% endif %}
+
+        <span class="liveux-fm-count-pill liveux-fm-mono" data-{{ ctrl }}-target="totalCount">{{ listing.total }}</span>
+        <span class="liveux-fm-spinner liveux-fm-hidden" role="status" aria-live="polite" aria-label="{{ 'actions.refresh'|liveux_fm_trans({}, loc) }}" data-{{ ctrl }}-target="spinner"></span>
+    </div>
+
+    <div class="liveux-fm-topbar-right">
+        {% if caps.showSearch or caps.showTypeFilter %}
+            <div class="liveux-fm-search-group">
+                {% if caps.showSearch %}
+                    {{ liveux_fm_icon('search', iconSetName, 13, 'liveux-fm-search-group-icon') }}
+                    <input type="search"
+                           class="liveux-fm-search-group-input"
+                           placeholder="{{ 'search.placeholder'|liveux_fm_trans({}, loc) }}"
+                           aria-label="{{ 'search.placeholder'|liveux_fm_trans({}, loc) }}"
+                           title="{{ 'shortcuts.search'|liveux_fm_trans({}, loc) }} (/)"
+                           data-{{ ctrl }}-target="searchInput"
+                           data-action="input->{{ ctrl }}#onSearchInput compositionend->{{ ctrl }}#onSearchInput">
+                    <button type="button"
+                            class="liveux-fm-search-group-btn"
+                            data-{{ ctrl }}-target="recursiveSearchBtn"
+                            data-action="{{ ctrl }}#toggleRecursiveSearch"
+                            title="{{ 'search.recursive_toggle'|liveux_fm_trans({}, loc) }}"
+                            aria-label="{{ 'search.recursive_toggle'|liveux_fm_trans({}, loc) }}">
+                        {{ liveux_fm_icon('search_deep', iconSetName, 13) }}
+                    </button>
+                {% endif %}
+                {% if caps.showSearch and caps.showTypeFilter %}
+                    <span class="liveux-fm-search-group-sep" aria-hidden="true"></span>
+                {% endif %}
+                {% if caps.showTypeFilter %}
+                    <select class="liveux-fm-search-group-select"
+                            title="{{ 'filters.label'|liveux_fm_trans({}, loc) }}"
+                            aria-label="{{ 'filters.label'|liveux_fm_trans({}, loc) }}"
+                            data-{{ ctrl }}-target="typeFilters"
+                            data-action="change->{{ ctrl }}#setTypeFilter">
+                        {% for filterKey in ['all', 'folder', 'image', 'doc', 'video'] %}
+                            <option value="{{ filterKey }}" {{ this.typeFilter == filterKey ? 'selected' : '' }}>{{ ('filters.' ~ filterKey)|liveux_fm_trans({}, loc) }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if caps.showSort %}
+            <div class="liveux-fm-sort-group">
+                <select class="liveux-fm-sort-select"
+                        title="{{ 'sort.title'|liveux_fm_trans({}, loc) }}"
+                        aria-label="{{ 'sort.title'|liveux_fm_trans({}, loc) }}"
+                        data-{{ ctrl }}-target="sortBySelect"
+                        data-action="change->{{ ctrl }}#setSortBy">
+                    <option value="name" {{ this.sortBy == 'name' ? 'selected' : '' }}>{{ 'sort.field_name'|liveux_fm_trans({}, loc) }}</option>
+                    <option value="size" {{ this.sortBy == 'size' ? 'selected' : '' }}>{{ 'sort.field_size'|liveux_fm_trans({}, loc) }}</option>
+                    <option value="date" {{ this.sortBy == 'date' ? 'selected' : '' }}>{{ 'sort.field_date'|liveux_fm_trans({}, loc) }}</option>
+                    <option value="type" {{ this.sortBy == 'type' ? 'selected' : '' }}>{{ 'sort.field_type'|liveux_fm_trans({}, loc) }}</option>
+                </select>
+                <button type="button"
+                        class="liveux-fm-sort-dir liveux-fm-mono"
+                        data-{{ ctrl }}-target="sortDirBtn"
+                        data-action="{{ ctrl }}#toggleSortDir"
+                        title="{{ (this.sortDirection == 'desc' ? 'sort.desc' : 'sort.asc')|liveux_fm_trans({}, loc) }}"
+                        aria-label="{{ (this.sortDirection == 'desc' ? 'sort.desc' : 'sort.asc')|liveux_fm_trans({}, loc) }}">
+                    {{ this.sortDirection == 'asc' ? '↑' : '↓' }}
+                </button>
+            </div>
+        {% endif %}
+
+        {% if caps.showViewToggle %}
+            <div class="liveux-fm-segmented" data-{{ ctrl }}-target="viewButtons">
+                <button type="button" class="{{ this.viewMode == 'grid' ? 'is-active' : '' }}" data-view="grid" data-action="{{ ctrl }}#setViewMode" title="{{ 'ui.view_grid'|liveux_fm_trans({}, loc) }} (V)" aria-label="{{ 'ui.view_grid'|liveux_fm_trans({}, loc) }}">
+                    {{ liveux_fm_icon('grid', iconSetName, 13) }}
+                </button>
+                <button type="button" class="{{ this.viewMode == 'list' ? 'is-active' : '' }}" data-view="list" data-action="{{ ctrl }}#setViewMode" title="{{ 'ui.view_list'|liveux_fm_trans({}, loc) }} (V)" aria-label="{{ 'ui.view_list'|liveux_fm_trans({}, loc) }}">
+                    {{ liveux_fm_icon('list', iconSetName, 13) }}
+                </button>
+            </div>
+        {% endif %}
+
+        {# Compact Quota Pill (shown when Sidebar is hidden/collapsed, storage_quota is enabled, and ui.show_quota is true) #}
+        {% if caps.showQuota %}
+            {% if caps.showQuotaDetails %}
+                <button type="button"
+                        class="liveux-fm-btn liveux-fm-btn-xs liveux-fm-quota-pill {{ quota.enabled ? '' : 'liveux-fm-hidden' }} {{ caps.showFolderTree ? 'liveux-fm-sidebar-fallback' : '' }}"
+                        data-{{ ctrl }}-target="quotaPill"
+                        data-action="click->{{ ctrl }}#openQuotaDetailsModal"
+                        title="{{ 'quota.click_hint'|liveux_fm_trans({}, loc) }}">
+                    {{ liveux_fm_icon('quota', iconSetName, 13) }}
+                    <span class="liveux-fm-mono" dir="ltr" data-{{ ctrl }}-target="quotaPillText">{{ quota.usedFormatted }} / {{ quota.maxFormatted }}</span>
+                </button>
+            {% else %}
+                <span class="liveux-fm-btn liveux-fm-btn-xs liveux-fm-quota-pill is-static {{ quota.enabled ? '' : 'liveux-fm-hidden' }} {{ caps.showFolderTree ? 'liveux-fm-sidebar-fallback' : '' }}"
+                      data-{{ ctrl }}-target="quotaPill">
+                    {{ liveux_fm_icon('quota', iconSetName, 13) }}
+                    <span class="liveux-fm-mono" dir="ltr" data-{{ ctrl }}-target="quotaPillText">{{ quota.usedFormatted }} / {{ quota.maxFormatted }}</span>
+                </span>
+            {% endif %}
+        {% endif %}
+
+        {% if caps.trashEnabled %}
+            <button type="button"
+                    class="liveux-fm-btn liveux-fm-btn-icon liveux-fm-btn-xs {{ caps.showFolderTree ? 'liveux-fm-sidebar-fallback' : '' }}"
+                    data-{{ ctrl }}-target="trashBtn"
+                    data-action="{{ ctrl }}#toggleTrash"
+                    title="{{ 'trash.title'|liveux_fm_trans({}, loc) }} (T)"
+                    aria-label="{{ 'trash.title'|liveux_fm_trans({}, loc) }}">
+                {{ liveux_fm_icon('trash', iconSetName, 13) }}
+            </button>
+        {% endif %}
+
+        {% if caps.createFolder %}
+            <button type="button"
+                    class="liveux-fm-btn liveux-fm-btn-icon liveux-fm-btn-xs"
+                    data-{{ ctrl }}-target="newFolderBtn"
+                    data-action="{{ ctrl }}#openNewFolderModal"
+                    title="{{ 'actions.new_folder'|liveux_fm_trans({}, loc) }} (N)"
+                    aria-label="{{ 'actions.new_folder'|liveux_fm_trans({}, loc) }}">
+                {{ liveux_fm_icon('new_folder', iconSetName, 14) }}
+            </button>
+        {% endif %}
+
+        {% if caps.upload %}
+            <input type="file"
+                   multiple
+                   class="liveux-fm-hidden"
+                   {% if this.uploadAcceptAttribute %}accept="{{ this.uploadAcceptAttribute }}"{% endif %}
+                   data-{{ ctrl }}-target="fileInput"
+                   data-action="change->{{ ctrl }}#onFileInputChange">
+            <button type="button"
+                    class="liveux-fm-btn liveux-fm-btn-primary liveux-fm-btn-xs"
+                    data-{{ ctrl }}-target="uploadBtn"
+                    data-action="{{ ctrl }}#openUploadModal"
+                    title="{{ 'actions.upload'|liveux_fm_trans({}, loc) }} (U)">
+                {{ liveux_fm_icon('upload', iconSetName, 13) }}
+                <span class="liveux-fm-hide-sm">{{ 'actions.upload'|liveux_fm_trans({}, loc) }}</span>
+            </button>
+        {% endif %}
+
+        {% if caps.showPerfBadge %}
+            <span class="liveux-fm-badge is-neutral liveux-fm-mono liveux-fm-hide-md" data-{{ ctrl }}-target="perfBadge">
+                {{ (listing.fromCache ? 'ui.cache_hit' : 'ui.cache_disk')|liveux_fm_trans({}, loc) }} • {{ listing.durationMs }}ms
+            </span>
+        {% endif %}
+    </div>
+
+    {% if caps.showFullscreenButton or caps.showSettingsButton or this.mode != 'inline' %}
+        <div class="liveux-fm-topbar-end">
+            <span class="liveux-fm-topbar-sep liveux-fm-mobile-hide" aria-hidden="true"></span>
+
+            {% if caps.showFullscreenButton %}
+                <button type="button"
+                        class="liveux-fm-btn liveux-fm-btn-icon liveux-fm-btn-subtle liveux-fm-mobile-dialog-hide"
+                        data-{{ ctrl }}-target="fullscreenBtn"
+                        data-action="{{ ctrl }}#toggleFullscreen"
+                        title="{{ 'actions.fullscreen'|liveux_fm_trans({}, loc) }} (F)"
+                        aria-label="{{ 'actions.fullscreen'|liveux_fm_trans({}, loc) }}">
+                    {{ liveux_fm_icon('fullscreen', iconSetName, 14) }}
+                </button>
+            {% endif %}
+
+            {% if caps.showSettingsButton %}
+                <button type="button"
+                        class="liveux-fm-btn liveux-fm-btn-icon liveux-fm-btn-subtle"
+                        data-action="{{ ctrl }}#toggleSettings"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        title="{{ 'settings.title'|liveux_fm_trans({}, loc) }}"
+                        aria-label="{{ 'settings.title'|liveux_fm_trans({}, loc) }}">
+                    {{ liveux_fm_icon('settings', iconSetName, 14) }}
+                </button>
+            {% endif %}
+
+            {% if this.mode != 'inline' %}
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-icon liveux-fm-btn-subtle liveux-fm-topbar-close" data-action="{{ ctrl }}#closeDialog" title="{{ 'actions.close'|liveux_fm_trans({}, loc) }} ({{ 'ui.key_esc'|liveux_fm_trans({}, loc) }})" aria-label="{{ 'actions.close'|liveux_fm_trans({}, loc) }}">
+                    {{ liveux_fm_icon('close', iconSetName, 14) }}
+                </button>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>

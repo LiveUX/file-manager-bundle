@@ -1,0 +1,47 @@
+{
+    "name": "@liveux/file-manager-bundle",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        "./package.json": "./package.json",
+        "./styles/core.css": "./dist/styles/core.css",
+        "./controllers/*": "./dist/controllers/*",
+        "./js/*": "./dist/js/*",
+        "./images/*": "./dist/images/*",
+        "./dist/*": "./dist/*"
+    },
+    "scripts": {
+        "build": "node build.mjs",
+        "build:check": "node build.mjs --check",
+        "test": "node --test ../tests/Js/dom_security_test.mjs ../tests/Js/frontend_audit_test.mjs"
+    },
+    "symfony": {
+        "controllers": {
+            "dialog": {
+                "main": "dist/controllers/dialog_controller.js",
+                "fetch": "eager",
+                "enabled": true,
+                "autoimport": {
+                    "@liveux/file-manager-bundle/styles/core.css": true
+                }
+            },
+            "browser": {
+                "main": "dist/controllers/browser_controller.js",
+                "fetch": "lazy",
+                "enabled": true
+            },
+            "picker": {
+                "main": "dist/controllers/picker_controller.js",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0.0"
+    },
+    "devDependencies": {
+        "esbuild": "^0.25.0"
+    }
+}

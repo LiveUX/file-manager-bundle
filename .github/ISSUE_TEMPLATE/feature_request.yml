@@ -1,0 +1,29 @@
+name: Feature Request
+description: Propose a new feature, integration, or UX improvement
+title: '[Feature]: '
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Use Case
+      description: What real-world workflow problem does this feature solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: Describe the ideal configuration, PHP contract, or UI behavior.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: design_principles
+    attributes:
+      label: Alignment with Bundle Principles
+      options:
+        - label: Zero mandatory third-party/CSS framework lock-in (opt-in if integrating an external package)
+        - label: Backward-compatible with existing profiles & configurations
+        - label: I am willing to open a Pull Request for this feature

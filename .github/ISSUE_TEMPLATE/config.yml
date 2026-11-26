@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability (Private Report)
+    url: https://github.com/LiveUX/file-manager-bundle/security/advisories/new
+    about: Please report security issues privately instead of opening a public issue.
+  - name: Documentation (Turkish)
+    url: https://github.com/LiveUX/file-manager-bundle/tree/main/docs/tr
+    about: Read the step-by-step installation, configuration, and troubleshooting guides.

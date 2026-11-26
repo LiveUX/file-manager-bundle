@@ -1,0 +1,99 @@
+{% trans_default_domain 'LiveUXFileManagerBundle' %}
+{% set loc = fmLocale|default('en') %}
+{% set caps = this.capabilities %}
+{% set ctrl = 'liveux--file-manager-bundle--browser' %}
+{% set iconSetName = this.resolvedIconSet %}
+
+<div class="liveux-fm-main">
+    <div class="liveux-fm-content-scroll"
+         data-{{ ctrl }}-target="contentArea"
+         data-action="mousedown->{{ ctrl }}#onContentMouseDown click->{{ ctrl }}#onContentAreaClick dragenter->{{ ctrl }}#onDropZoneDragEnter dragover->{{ ctrl }}#onDropZoneDragOver dragleave->{{ ctrl }}#onDropZoneDragLeave drop->{{ ctrl }}#onDropZoneDrop">
+        <div class="liveux-fm-empty">…</div>
+    </div>
+
+    {# Floating Bottom Bulk Selection Pill (Zero Layout Shift) #}
+    <div class="liveux-fm-bulkbar liveux-fm-hidden" data-{{ ctrl }}-target="bulkBar">
+        <div class="liveux-fm-row-sm">
+            <span class="liveux-fm-badge is-primary liveux-fm-mono" data-{{ ctrl }}-target="bulkCount">0</span>
+            <span class="liveux-fm-strong">{{ 'inspector.selected_count'|liveux_fm_trans({}, loc) }}</span>
+        </div>
+        {% if caps.move or caps.copy or caps.downloadZip or caps.delete %}
+            <span class="liveux-fm-bulkbar-sep" aria-hidden="true"></span>
+        {% endif %}
+        <div class="liveux-fm-row-sm liveux-fm-row-wrap">
+            {% if caps.move or caps.copy %}
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-xs" data-action="{{ ctrl }}#bulkMove">{{ (caps.move ? 'actions.move_verb' : 'actions.copy_verb')|liveux_fm_trans({}, loc) }}</button>
+            {% endif %}
+            {% if caps.downloadZip %}
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-outline-primary liveux-fm-btn-xs" data-action="{{ ctrl }}#downloadZip">{{ 'actions.download_zip'|liveux_fm_trans({}, loc) }}</button>
+            {% endif %}
+            {% if caps.delete %}
+                <button type="button" class="liveux-fm-btn liveux-fm-btn-danger liveux-fm-btn-xs" data-action="{{ ctrl }}#bulkDelete">{{ 'actions.delete'|liveux_fm_trans({}, loc) }}</button>
+            {% endif %}
+            <button type="button"
+                    class="liveux-fm-btn liveux-fm-btn-ghost liveux-fm-btn-xs"
+                    data-action="{{ ctrl }}#clearSelection"
+                    title="{{ 'actions.cancel'|liveux_fm_trans({}, loc) }}"
+                    aria-label="{{ 'actions.cancel'|liveux_fm_trans({}, loc) }}">✕</button>
+        </div>
+    </div>
+
+    {# Floating Bottom Clipboard Pill (Cut / Copy Active Indicator + 1-Click Paste Here) #}
+    {% if caps.move or caps.copy %}
+        <div class="liveux-fm-bulkbar liveux-fm-clipboard-bar liveux-fm-hidden" data-{{ ctrl }}-target="clipboardBar">
+            <div class="liveux-fm-row-sm liveux-fm-minw-0">
+                <span class="liveux-fm-badge is-accent liveux-fm-mono" data-{{ ctrl }}-target="clipboardCount">0</span>
+                <span class="liveux-fm-strong liveux-fm-truncate" style="max-width: 240px;" data-{{ ctrl }}-target="clipboardLabel"></span>
+            </div>
+            <span class="liveux-fm-bulkbar-sep" aria-hidden="true"></span>
+            <div class="liveux-fm-row-sm liveux-fm-shrink-0">
+                <button type="button"
+                        class="liveux-fm-btn liveux-fm-btn-primary liveux-fm-btn-xs"
+                        data-{{ ctrl }}-target="clipboardPasteBtn"
+                        data-action="{{ ctrl }}#pasteHere">
+                    {{ 'actions.paste_here'|liveux_fm_trans({}, loc) }}
+                </button>
+                <button type="button"
+                        class="liveux-fm-btn liveux-fm-btn-ghost liveux-fm-btn-xs"
+                        data-action="{{ ctrl }}#clearClipboard"
+                        title="{{ 'actions.cancel'|liveux_fm_trans({}, loc) }}"
+                        aria-label="{{ 'actions.cancel'|liveux_fm_trans({}, loc) }}">✕</button>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Non-Intrusive OS File Dropzone Overlay #}
+    {% if caps.allowDropzoneUpload %}
+        <div class="liveux-fm-drop-overlay liveux-fm-hidden" data-{{ ctrl }}-target="dropOverlay">
+            <div class="liveux-fm-drop-overlay-card">
+                {{ liveux_fm_icon('cloud_upload', iconSetName, 36) }}
+                <div class="liveux-fm-strong">{{ 'dropzone.title'|liveux_fm_trans({}, loc) }}</div>
+                <div class="liveux-fm-muted liveux-fm-mono liveux-fm-text-xs" data-{{ ctrl }}-target="dropOverlayPath"></div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if (caps.showPagination or caps.showFooter) and this.mode == 'inline' %}
+        {# Inline Status & Pagination Bar #}
+        <div class="liveux-fm-pagination {{ caps.showFooter ? '' : 'liveux-fm-hidden' }}" data-{{ ctrl }}-target="paginationBar">
+            <div class="liveux-fm-row-sm liveux-fm-minw-0">
+                {% if caps.showFooter %}
+                    <span class="liveux-fm-muted liveux-fm-truncate" role="status" style="font-size: 0.72rem;" data-{{ ctrl }}-target="footerStatus">{{ 'footer.hint'|liveux_fm_trans({}, loc) }}</span>
+                {% endif %}
+            </div>
+
+            {% if caps.showPagination %}
+                <div class="liveux-fm-row-sm liveux-fm-shrink-0">
+                    {% if caps.showPerPageSelector %}
+                        <select class="liveux-fm-select liveux-fm-select-xs liveux-fm-hidden" title="{{ 'sort.limit'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'sort.limit'|liveux_fm_trans({}, loc) }}" data-{{ ctrl }}-target="perPageSelect" data-action="change->{{ ctrl }}#setPerPage">
+                            {% for opt in this.perPageOptions %}
+                                <option value="{{ opt }}" {{ this.perPage == opt ? 'selected' : '' }}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+                    <div class="liveux-fm-row-sm liveux-fm-shrink-0" data-{{ ctrl }}-target="pagerGroup"></div>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>

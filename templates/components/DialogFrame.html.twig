@@ -1,0 +1,11 @@
+{{ component('LiveUX:FileManager:Browser', {
+    profile: profile|default('default'),
+    volume: volume|default(null),
+    path: path|default(''),
+    multiple: multiple|default(false),
+    mode: mode|default('modal'),
+    iconSet: iconSet|default(null),
+    locale: locale|default(null),
+    theme: theme|default(null),
+    typeFilter: typeFilter|default('all')
+}) }}

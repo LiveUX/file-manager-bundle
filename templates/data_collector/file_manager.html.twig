@@ -1,0 +1,132 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+        <span class="sf-toolbar-value">{{ collector.profiles|length }}</span>
+        <span class="sf-toolbar-label">FM</span>
+    {% endset %}
+
+    {% set text %}
+        <div class="sf-toolbar-info-piece">
+            <b>LiveUX FileManager</b>
+            <span>v{{ collector.version }}</span>
+        </div>
+        <div class="sf-toolbar-info-piece">
+            <b>Profiles</b>
+            <span class="sf-toolbar-status">{{ collector.profiles|length }}</span>
+        </div>
+        <div class="sf-toolbar-info-piece">
+            <b>Volumes</b>
+            <span class="sf-toolbar-status">{{ collector.volumes|length }}</span>
+        </div>
+        <div class="sf-toolbar-info-piece">
+            <b>Thumb Driver</b>
+            <span class="sf-toolbar-status">{{ collector.diagnostics.activeDriver|default('none') }}</span>
+        </div>
+    {% endset %}
+
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { link: true }) }}
+{% endblock %}
+
+{% block menu %}
+    <span class="label">
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
+        </span>
+        <strong>LiveUX FileManager</strong>
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>LiveUX FileManagerBundle Diagnostics</h2>
+
+    <div class="metrics">
+        <div class="metric">
+            <span class="value">{{ collector.profiles|length }}</span>
+            <span class="label">Profiles</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ collector.volumes|length }}</span>
+            <span class="label">Volumes</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ collector.diagnostics.activeDriver|default('none') }}</span>
+            <span class="label">Thumbnail Driver</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ collector.diagnostics.zip|default(false) ? 'OK' : 'N/A' }}</span>
+            <span class="label">ext-zip</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ collector.diagnostics.gd|default(false) ? 'OK' : 'N/A' }}</span>
+            <span class="label">ext-gd</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ collector.diagnostics.imagick|default(false) ? 'OK' : 'N/A' }}</span>
+            <span class="label">ext-imagick</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ collector.diagnostics.webp|default(false) ? 'OK' : 'N/A' }}</span>
+            <span class="label">WebP</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ collector.iconSets|length }}</span>
+            <span class="label">Icon Sets</span>
+        </div>
+    </div>
+
+    <h3>Configured Profiles</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Profile</th>
+                <th>Theme</th>
+                <th>Locale</th>
+                <th>Icon Set</th>
+                <th>Voter</th>
+                <th>CSRF</th>
+                <th>Remote URL</th>
+                <th>Cache TTL</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in collector.profiles %}
+                <tr>
+                    <td><code>{{ p.name }}</code></td>
+                    <td>{{ p.theme }}</td>
+                    <td><code>{{ p.locale }}</code></td>
+                    <td><code>{{ p.iconSet }}</code></td>
+                    <td>{{ p.voter ? 'Enabled' : 'Disabled' }}</td>
+                    <td>{{ p.csrf ? 'Enabled' : 'Disabled' }}</td>
+                    <td>{{ p.remoteImport ? 'Allowed' : 'Blocked' }}</td>
+                    <td>{{ p.cacheEnabled ? p.cacheTtl ~ 's' : 'Off' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Configured Volumes</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Volume</th>
+                <th>Label</th>
+                <th>Group</th>
+                <th>Driver</th>
+                <th>Visibility</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in collector.volumes %}
+                <tr>
+                    <td><code>{{ v.name }}</code></td>
+                    <td>{{ v.label }}</td>
+                    <td>{{ v.group }}</td>
+                    <td><code>{{ v.driver }}</code></td>
+                    <td>{{ v.private ? 'Private' : 'Public' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% trans_default_domain 'LiveUXFileManagerBundle' %}
+{% set loc = fmLocale|default('en') %}
+{% set ctrl = 'liveux--file-manager-bundle--browser' %}
+{% set volumeSections = this.volumeSections %}
+{% set totalVolumes = this.orderedVolumes|length %}
+{% set caps = this.capabilities %}
+{% set iconSetName = this.resolvedIconSet %}
+
+<aside class="liveux-fm-sidebar" data-{{ ctrl }}-target="sidebar">
+    {# Single Compact Top Row: Inline Folder Filter + Expand All (+) / Collapse All (−) #}
+    <div class="liveux-fm-sidebar-top">
+        <span class="liveux-fm-section-label liveux-fm-truncate liveux-fm-grow" data-{{ ctrl }}-target="treeTitleLabel">{{ 'sidebar.title'|liveux_fm_trans({}, loc) }}</span>
+        <input type="search"
+               class="liveux-fm-input liveux-fm-sidebar-filter liveux-fm-hidden"
+               placeholder="{{ 'search.folders'|liveux_fm_trans({}, loc) }}"
+               aria-label="{{ 'search.folders'|liveux_fm_trans({}, loc) }}"
+               data-{{ ctrl }}-target="treeSearchWrap"
+               data-action="input->{{ ctrl }}#onTreeSearchInput compositionend->{{ ctrl }}#onTreeSearchInput">
+        <div class="liveux-fm-sidebar-tree-btns liveux-fm-shrink-0">
+            <button type="button"
+                    class="liveux-fm-btn liveux-fm-btn-ghost liveux-fm-sidebar-mini-btn"
+                    title="{{ 'sidebar.expand_all'|liveux_fm_trans({}, loc) }}"
+                    aria-label="{{ 'sidebar.expand_all'|liveux_fm_trans({}, loc) }}"
+                    data-action="click->{{ ctrl }}#expandAllTree">+</button>
+            <button type="button"
+                    class="liveux-fm-btn liveux-fm-btn-ghost liveux-fm-sidebar-mini-btn"
+                    title="{{ 'sidebar.collapse_all'|liveux_fm_trans({}, loc) }}"
+                    aria-label="{{ 'sidebar.collapse_all'|liveux_fm_trans({}, loc) }}"
+                    data-action="click->{{ ctrl }}#collapseAllTree">−</button>
+            <button type="button"
+                    class="liveux-fm-btn liveux-fm-btn-ghost liveux-fm-sidebar-mini-btn liveux-fm-mobile-only"
+                    title="{{ 'actions.close'|liveux_fm_trans({}, loc) }}"
+                    aria-label="{{ 'actions.close'|liveux_fm_trans({}, loc) }}"
+                    data-action="click->{{ ctrl }}#closeMobileSidebar">✕</button>
+        </div>
+    </div>
+
+    {# Scrollable Folder Tree #}
+    <div class="liveux-fm-sidebar-scroll">
+        {# Pinned / Quick Access Folders #}
+        <div class="liveux-fm-pinned-box liveux-fm-hidden" role="tree" aria-label="{{ 'sidebar.pinned'|liveux_fm_trans({}, loc) }}" data-{{ ctrl }}-target="pinnedFolders"></div>
+
+        <div class="liveux-fm-tree" role="tree" data-{{ ctrl }}-target="tree" data-tree-lines="{{ this.treeLines ? 'true' : 'false' }}">
+            {% for section in volumeSections %}
+                {% if not loop.first %}
+                    <hr class="liveux-fm-hr">
+                {% endif %}
+                {% if section.labelKey is not null and (section.showCount or totalVolumes > 1) %}
+                    <div class="liveux-fm-row-between" style="padding: 0 4px; margin-bottom: 4px;">
+                        <span class="liveux-fm-section-label">{{ section.labelKey|liveux_fm_trans({}, loc) }}</span>
+                        {% if section.showCount %}
+                            <span class="liveux-fm-badge is-pill is-success" style="font-size: 0.6rem;">{{ section.volumes|length }}</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                {% for vol in section.volumes %}
+                    <div style="margin-bottom: 6px;" data-volume-group="{{ vol.name }}">
+                        <div class="liveux-fm-tree-row {{ this.volume == vol.name and this.path == '' ? 'is-active' : '' }}"
+                             role="treeitem"
+                             aria-selected="{{ this.volume == vol.name and this.path == '' ? 'true' : 'false' }}"
+                             tabindex="0"
+                             data-tree-node="1"
+                             data-volume="{{ vol.name }}"
+                             data-path=""
+                             data-folder-path=""
+                             data-action="click->{{ ctrl }}#navigate keydown->{{ ctrl }}#onTreeRowKeydown dragover->{{ ctrl }}#onFolderDragOver dragleave->{{ ctrl }}#onFolderDragLeave drop->{{ ctrl }}#onFolderDrop">
+                            {{ liveux_fm_icon(vol.resolveIconKey(), iconSetName, 15, 'liveux-fm-shrink-0', 'ui', vol.isNetwork() ? 'cloud' : 'disk') }}
+                            <span class="liveux-fm-truncate liveux-fm-grow">{{ vol.label }}</span>
+                        </div>
+                        <div data-volume-tree-container="{{ vol.name }}"></div>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Profile Storage Quota Bar (Config-toggleable via ui.show_quota & ui.show_quota_details) #}
+    {% if caps.showQuota %}
+        {% set quota = this.quotaSummary %}
+        {% set quotaLevel = quota.percent >= 90 ? 'is-danger' : (quota.percent >= 75 ? 'is-warning' : '') %}
+        {% if caps.showQuotaDetails %}
+            <button type="button"
+                    class="liveux-fm-quota-box {{ quota.enabled ? '' : 'liveux-fm-hidden' }}"
+                    data-{{ ctrl }}-target="quotaBox"
+                    data-action="click->{{ ctrl }}#openQuotaDetailsModal"
+                    title="{{ 'quota.click_hint'|liveux_fm_trans({}, loc) }}">
+                <div class="liveux-fm-row-between liveux-fm-text-xs" style="margin-bottom: 4px;">
+                    <span class="liveux-fm-row-sm liveux-fm-muted">
+                        {{ liveux_fm_icon('quota', iconSetName, 12) }}
+                        <span>{{ 'quota.label'|liveux_fm_trans({}, loc) }}</span>
+                    </span>
+                    <span class="liveux-fm-mono liveux-fm-quota-pct {{ quotaLevel }}" dir="ltr" data-{{ ctrl }}-target="quotaPercent">{{ quota.percent }}%</span>
+                </div>
+                <div class="liveux-fm-progress">
+                    <div class="liveux-fm-progress-bar {{ quotaLevel }}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ (quota.percent|default(0)) + 0 }}" data-{{ ctrl }}-target="quotaBar" style="width: {{ (quota.percent|default(0)) + 0 }}%;"></div>
+                </div>
+                <div class="liveux-fm-row-between liveux-fm-quota-sub">
+                    <span class="liveux-fm-mono" dir="ltr" data-{{ ctrl }}-target="quotaText">{{ quota.usedFormatted }} / {{ quota.maxFormatted }}</span>
+                    <span class="liveux-fm-quota-more" aria-hidden="true">↗</span>
+                </div>
+            </button>
+        {% else %}
+            <div class="liveux-fm-quota-box is-static {{ quota.enabled ? '' : 'liveux-fm-hidden' }}"
+                 data-{{ ctrl }}-target="quotaBox">
+                <div class="liveux-fm-row-between liveux-fm-text-xs" style="margin-bottom: 4px;">
+                    <span class="liveux-fm-row-sm liveux-fm-muted">
+                        {{ liveux_fm_icon('quota', iconSetName, 12) }}
+                        <span>{{ 'quota.label'|liveux_fm_trans({}, loc) }}</span>
+                    </span>
+                    <span class="liveux-fm-mono liveux-fm-quota-pct {{ quotaLevel }}" dir="ltr" data-{{ ctrl }}-target="quotaPercent">{{ quota.percent }}%</span>
+                </div>
+                <div class="liveux-fm-progress">
+                    <div class="liveux-fm-progress-bar {{ quotaLevel }}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ (quota.percent|default(0)) + 0 }}" data-{{ ctrl }}-target="quotaBar" style="width: {{ (quota.percent|default(0)) + 0 }}%;"></div>
+                </div>
+                <div class="liveux-fm-row-between liveux-fm-quota-sub">
+                    <span class="liveux-fm-mono" dir="ltr" data-{{ ctrl }}-target="quotaText">{{ quota.usedFormatted }} / {{ quota.maxFormatted }}</span>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {# Bottom Pinned Trash Button #}
+    {% if caps.trashEnabled %}
+        <div class="liveux-fm-sidebar-footer">
+            <button type="button"
+                    class="liveux-fm-tree-row liveux-fm-w-full liveux-fm-row-between"
+                    data-{{ ctrl }}-target="sidebarTrashBtn"
+                    data-action="click->{{ ctrl }}#toggleTrash"
+                    title="{{ 'trash.title'|liveux_fm_trans({}, loc) }} (T)">
+                <span class="liveux-fm-row">
+                    {{ liveux_fm_icon('trash', iconSetName, 15) }}
+                    <span>{{ 'trash.title'|liveux_fm_trans({}, loc) }}</span>
+                </span>
+            </button>
+        </div>
+    {% endif %}
+
+    {# Drag-to-Resize Handle #}
+    <div class="liveux-fm-sidebar-resizer" data-action="mousedown->{{ ctrl }}#startSidebarResize"></div>
+</aside>

@@ -1,0 +1,114 @@
+{% trans_default_domain 'LiveUXFileManagerBundle' %}
+{% set loc = fmLocale|default('en') %}
+{% set caps = this.capabilities %}
+{% set listing = this.listing %}
+{% set ctrl = 'liveux--file-manager-bundle--browser' %}
+{% set iconSetName = this.resolvedIconSet %}
+{% set activeScheme = this.resolvedColorScheme %}
+
+{% if caps.showSettingsButton %}
+<div class="liveux-fm-popover" data-{{ ctrl }}-target="settingsPopover">
+    {# Color Scheme Switcher (Auto / Light / Dark) #}
+    <div class="liveux-fm-row-between" style="margin-bottom: 8px;">
+        <span class="liveux-fm-section-label">{{ 'settings.color_scheme'|liveux_fm_trans({}, loc) }}</span>
+        <div class="liveux-fm-segmented" data-{{ ctrl }}-target="colorSchemeButtons">
+            <button type="button" class="{{ activeScheme == 'auto' ? 'is-active' : '' }}" data-scheme="auto" data-action="{{ ctrl }}#setColorScheme" title="{{ 'settings.color_scheme_auto'|liveux_fm_trans({}, loc) }}">{{ 'settings.color_scheme_auto'|liveux_fm_trans({}, loc) }}</button>
+            <button type="button" class="{{ activeScheme == 'light' ? 'is-active' : '' }}" data-scheme="light" data-action="{{ ctrl }}#setColorScheme" title="{{ 'settings.color_scheme_light'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'settings.color_scheme_light'|liveux_fm_trans({}, loc) }}">{{ liveux_fm_icon('sun', iconSetName, 12) }}</button>
+            <button type="button" class="{{ activeScheme == 'dark' ? 'is-active' : '' }}" data-scheme="dark" data-action="{{ ctrl }}#setColorScheme" title="{{ 'settings.color_scheme_dark'|liveux_fm_trans({}, loc) }}" aria-label="{{ 'settings.color_scheme_dark'|liveux_fm_trans({}, loc) }}">{{ liveux_fm_icon('moon', iconSetName, 12) }}</button>
+        </div>
+    </div>
+
+    {# Folder Style Switcher (Compact Tile / Large Card) #}
+    <div class="liveux-fm-row-between" style="margin-bottom: 8px;">
+        <span class="liveux-fm-section-label">{{ 'settings.folder_style'|liveux_fm_trans({}, loc) }}</span>
+        <div class="liveux-fm-segmented" data-{{ ctrl }}-target="folderStyleButtons">
+            <button type="button" class="{{ this.resolvedFolderStyle == 'tile' ? 'is-active' : '' }}" data-folder-style="tile" data-action="{{ ctrl }}#setFolderStyle">{{ 'settings.folder_style_tile'|liveux_fm_trans({}, loc) }}</button>
+            <button type="button" class="{{ this.resolvedFolderStyle == 'card' ? 'is-active' : '' }}" data-folder-style="card" data-action="{{ ctrl }}#setFolderStyle">{{ 'settings.folder_style_card'|liveux_fm_trans({}, loc) }}</button>
+        </div>
+    </div>
+
+    {% if caps.showSizeSlider %}
+        {# Live Item Size Slider (XS / S / M / L / XL — 96px..320px, 0ms CSS custom property) #}
+        <div style="margin-bottom: 8px;">
+            <div class="liveux-fm-row-between" style="margin-bottom: 4px;">
+                <span class="liveux-fm-section-label">{{ 'settings.item_size'|liveux_fm_trans({}, loc) }}</span>
+                <span class="liveux-fm-mono liveux-fm-muted" style="font-size: 0.68rem;" data-{{ ctrl }}-target="itemSizeLabel">{{ this.resolvedItemSizePx }}px</span>
+            </div>
+            <div class="liveux-fm-row-sm">
+                <input type="range"
+                       class="liveux-fm-range liveux-fm-grow"
+                       min="96"
+                       max="320"
+                       step="4"
+                       value="{{ this.resolvedItemSizePx }}"
+                       aria-label="{{ 'settings.item_size'|liveux_fm_trans({}, loc) }}"
+                       data-{{ ctrl }}-target="itemSizeSlider"
+                       data-action="input->{{ ctrl }}#onItemSizeInput">
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="liveux-fm-stack" style="gap: 4px; margin: 4px 0 6px;">
+        {% if caps.showFolderTree %}
+            <label class="liveux-fm-toggle-row">
+                <span>{{ 'settings.tree_lines'|liveux_fm_trans({}, loc) }}</span>
+                <input class="liveux-fm-checkbox" type="checkbox" data-action="change->{{ ctrl }}#toggleTreeLines" {{ this.treeLines ? 'checked' : '' }}>
+            </label>
+        {% endif %}
+        <label class="liveux-fm-toggle-row">
+            <span>{{ 'settings.thumbnails'|liveux_fm_trans({}, loc) }}</span>
+            <input class="liveux-fm-checkbox" type="checkbox" data-action="change->{{ ctrl }}#toggleThumbnails" {{ this.thumbnailsEnabled ? 'checked' : '' }}>
+        </label>
+    </div>
+
+    {% if caps.showQuotaDetails %}
+        {# Storage Quota Breakdown Shortcut (Config-toggleable via ui.show_quota & ui.show_quota_details) #}
+        <div class="liveux-fm-ctx-sep"></div>
+        <div style="margin: 4px 0;">
+            <button type="button" class="liveux-fm-ctx-item is-between" data-action="{{ ctrl }}#openQuotaDetailsModal">
+                <span class="liveux-fm-row-sm">{{ liveux_fm_icon('quota', iconSetName, 13) }} <span>{{ 'quota.details_title'|liveux_fm_trans({}, loc) }}</span></span>
+                <span class="liveux-fm-muted liveux-fm-mono" style="font-size: 0.65rem;" data-{{ ctrl }}-target="settingsQuotaBadge">{{ this.quotaSummary.enabled ? (this.quotaSummary.percent ~ '%') : ('ui.stats'|liveux_fm_trans({}, loc)) }}</span>
+            </button>
+        </div>
+    {% endif %}
+
+    {% if caps.clearCache %}
+        <div class="liveux-fm-ctx-sep"></div>
+        <div class="liveux-fm-row-between" style="margin: 6px 0;">
+            <span class="liveux-fm-section-label">{{ 'settings.cache_title'|liveux_fm_trans({}, loc) }}</span>
+            <span class="liveux-fm-mono" style="font-size: 0.68rem; color: var(--liveux-fm-success);" data-{{ ctrl }}-target="settingsCachePill">{{ (listing.fromCache ? 'ui.cache_hit' : 'ui.cache_disk')|liveux_fm_trans({}, loc) }} • {{ listing.durationMs }}ms</span>
+        </div>
+        <div class="liveux-fm-stack" style="gap: 2px; margin-bottom: 4px;">
+            {% if caps.cacheEnabled %}
+                <button type="button" class="liveux-fm-ctx-item is-between" data-action="{{ ctrl }}#clearCache" data-scope="dir">
+                    <span>{{ 'settings.cache_dir'|liveux_fm_trans({}, loc) }}</span><span class="liveux-fm-muted liveux-fm-mono" style="font-size: 0.65rem;">{{ 'ui.cache_tag'|liveux_fm_trans({}, loc) }}</span>
+                </button>
+                <button type="button" class="liveux-fm-ctx-item is-between" data-action="{{ ctrl }}#clearCache" data-scope="profile">
+                    <span>{{ 'settings.cache_profile'|liveux_fm_trans({}, loc) }}</span><span class="liveux-fm-muted liveux-fm-mono" style="font-size: 0.65rem;">{{ 'filters.all'|liveux_fm_trans({}, loc) }}</span>
+                </button>
+            {% endif %}
+            {% if this.thumbnailsEnabled %}
+                <button type="button" class="liveux-fm-ctx-item is-between" data-action="{{ ctrl }}#clearCache" data-scope="thumbs">
+                    <span>{{ 'settings.cache_thumbs'|liveux_fm_trans({}, loc) }}</span><span class="liveux-fm-muted liveux-fm-mono" style="font-size: 0.65rem;">{{ this.thumbnailFormatLabel }}</span>
+                </button>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if profileConfig.ui.keyboard_shortcuts ?? true %}
+        <div class="liveux-fm-ctx-sep"></div>
+        <div style="margin: 4px 0;">
+            <button type="button" class="liveux-fm-ctx-item is-between" data-action="{{ ctrl }}#openShortcutsModal">
+                <span>{{ 'shortcuts.title'|liveux_fm_trans({}, loc) }}</span>
+                <kbd class="liveux-fm-kbd">?</kbd>
+            </button>
+        </div>
+    {% endif %}
+
+    <div class="liveux-fm-ctx-sep"></div>
+    <div class="liveux-fm-row" style="margin-top: 8px;">
+        <a href="https://github.com/LiveUX/file-manager-bundle" target="_blank" rel="noopener noreferrer" class="liveux-fm-btn liveux-fm-grow" style="font-size: 0.72rem; padding: 4px 8px;">{{ 'settings.github'|liveux_fm_trans({}, loc) }} ↗</a>
+        <button type="button" class="liveux-fm-btn liveux-fm-grow" style="font-size: 0.72rem; padding: 4px 8px;" data-action="{{ ctrl }}#openAbout">{{ 'settings.about'|liveux_fm_trans({}, loc) }}</button>
+    </div>
+</div>
+{% endif %}

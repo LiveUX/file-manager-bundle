@@ -1,0 +1,28 @@
+{# Drop this once in your base layout to enable window.LiveUXFileManager.open({ mode: 'modal'|'offcanvas', position: 'end' }) #}
+{# Lazy-loaded: renders ZERO PHP/HTML overhead until window.LiveUXFileManager.open() is called! #}
+{% set hostLocale = locale|default(null) %}
+{% set parsedZIndex = '%d'|format(zIndex|default(1050)) + 0 %}
+{% set safeZIndex = parsedZIndex > 0 ? min(2147483647, parsedZIndex) : 1050 %}
+<div
+    id="liveux-fm-dialog-host"
+    data-controller="liveux--file-manager-bundle--dialog"
+    data-liveux--file-manager-bundle--dialog-frame-url-value="{{ path('liveux_file_manager_dialog') }}"
+    data-liveux--file-manager-bundle--dialog-profile-value="{{ profile|default('default') }}"
+    data-liveux--file-manager-bundle--dialog-error-message-value="{{ 'errors.load_fm'|liveux_fm_trans({}, hostLocale) }}"
+    data-liveux--file-manager-bundle--dialog-close-label-value="{{ 'actions.close'|liveux_fm_trans({}, hostLocale) }}"
+    data-liveux--file-manager-bundle--dialog-loading-label-value="{{ 'preview.loading'|liveux_fm_trans({}, hostLocale) }}"
+    data-liveux--file-manager-bundle--dialog-z-index-value="{{ safeZIndex }}"
+>
+    <dialog
+        class="liveux-fm-dialog"
+        lang="{{ liveux_fm_bcp47_locale(hostLocale) }}"
+        dir="{{ liveux_fm_is_rtl(hostLocale) ? 'rtl' : 'ltr' }}"
+        data-liveux--file-manager-bundle--dialog-target="dialog"
+        data-action="mousedown->liveux--file-manager-bundle--dialog#onBackdropMouseDown click->liveux--file-manager-bundle--dialog#backdropClick cancel->liveux--file-manager-bundle--dialog#onDialogCancel close->liveux--file-manager-bundle--dialog#onDialogClose"
+        data-mode="modal"
+        data-position="end"
+        data-mobile-mode="auto"
+    >
+        <div class="liveux-fm-dialog-body" data-liveux--file-manager-bundle--dialog-target="body"></div>
+    </dialog>
+</div>

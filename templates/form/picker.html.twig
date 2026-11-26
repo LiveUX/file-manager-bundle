@@ -1,0 +1,205 @@
+{% block liveux_file_manager_picker_widget %}
+    {% set ctrl = 'liveux--file-manager-bundle--picker' %}
+    {% set fmLocale = locale|default(null) %}
+    {% set resolvedVariant = variant|default('compact') %}
+    {% set resolvedTheme = theme|default('bootstrap5') %}
+    {% set isDisabled = disabled|default(false) %}
+    {% set btnLabel = button_label|default('picker.select'|liveux_fm_trans({}, fmLocale)) %}
+    {% set emptyPlaceholder = placeholder|default('picker.placeholder'|liveux_fm_trans({}, fmLocale)) %}
+    {% set clearLabel = 'picker.clear'|liveux_fm_trans({}, fmLocale) %}
+    {% set removeLabel = 'picker.remove'|liveux_fm_trans({}, fmLocale) %}
+
+    <div
+        lang="{{ bcp47_locale|default('en') }}"
+        dir="{{ (is_rtl|default(false)) ? 'rtl' : 'ltr' }}"
+        data-controller="{{ ctrl }}"
+        data-{{ ctrl }}-profile-value="{{ profile }}"
+        data-{{ ctrl }}-locale-value="{{ fmLocale|default('') }}"
+        data-{{ ctrl }}-volume-value="{{ volume|default('') }}"
+        data-{{ ctrl }}-theme-value="{{ resolvedTheme }}"
+        data-{{ ctrl }}-variant-value="{{ resolvedVariant }}"
+        data-{{ ctrl }}-multiple-value="{{ multiple ? 'true' : 'false' }}"
+        data-{{ ctrl }}-max-files-value="{{ max_files|default(0) }}"
+        data-{{ ctrl }}-mode-value="{{ mode }}"
+        data-{{ ctrl }}-position-value="{{ position }}"
+        data-{{ ctrl }}-mobile-mode-value="{{ mobile_mode|default('') }}"
+        data-{{ ctrl }}-return-type-value="{{ return_type }}"
+        data-{{ ctrl }}-preview-value="{{ preview ? 'true' : 'false' }}"
+        data-{{ ctrl }}-preview-url-prefix-value="{{ preview_url_prefix|default('') }}"
+        data-{{ ctrl }}-thumb-url-value="{{ thumb_url|default('') }}"
+        data-{{ ctrl }}-file-label-value="{{ 'ui.file_label'|liveux_fm_trans({}, fmLocale) }}"
+        data-{{ ctrl }}-placeholder-value="{{ emptyPlaceholder }}"
+        data-{{ ctrl }}-button-label-value="{{ btnLabel }}"
+        data-{{ ctrl }}-remove-label-value="{{ removeLabel }}"
+        data-{{ ctrl }}-move-prev-label-value="{{ 'pagination.prev'|liveux_fm_trans({}, fmLocale) }}"
+        data-{{ ctrl }}-move-next-label-value="{{ 'pagination.next'|liveux_fm_trans({}, fmLocale) }}"
+        data-liveux-theme="{{ resolvedTheme }}"
+        data-fm-color-scheme="{{ color_scheme|default('auto') }}"
+        class="liveux-fm-picker{{ isDisabled ? ' is-disabled' : '' }}"
+    >
+        {% if template is defined and template is not empty %}
+            {% include template %}
+        {% elseif multiple %}
+            <input
+                type="hidden"
+                id="{{ id }}"
+                name="{{ full_name }}"
+                value="{{ value|default('[]') }}"
+                {{ isDisabled ? 'disabled' : '' }}
+                data-{{ ctrl }}-target="input"
+                {% for attrname, attrvalue in attr %}{% if not (attrname|lower starts with 'on') and attrname|lower != 'disabled' and attrvalue is not same as(false) %}{% if attrvalue is same as(true) %}{{ attrname|e('html_attr') }} {% else %}{{ attrname|e('html_attr') }}="{{ attrvalue }}" {% endif %}{% endif %}{% endfor %}
+            />
+
+            {% if resolvedVariant == 'input' %}
+                <div class="liveux-fm-picker-chips" data-{{ ctrl }}-target="galleryGrid"></div>
+            {% elseif resolvedVariant == 'dropzone' %}
+                <div class="liveux-fm-picker-dropzone" role="button" tabindex="{{ isDisabled ? '-1' : '0' }}" aria-disabled="{{ isDisabled ? 'true' : 'false' }}" style="margin-bottom: 8px;" data-{{ ctrl }}-target="dropzone" data-action="click->{{ ctrl }}#open keydown->{{ ctrl }}#onDropzoneKeydown">
+                    <svg width="26" height="26" aria-hidden="true" style="color: var(--liveux-fm-accent); margin-bottom: 4px;" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/></svg>
+                    <div class="liveux-fm-strong liveux-fm-text-sm">{{ btnLabel }}</div>
+                    <div class="liveux-fm-muted liveux-fm-text-xs">{{ emptyPlaceholder }}</div>
+                </div>
+                <div class="liveux-fm-picker-grid" data-{{ ctrl }}-target="galleryGrid"></div>
+            {% else %}
+                <div class="liveux-fm-picker-box">
+                    <div class="liveux-fm-picker-grid" data-{{ ctrl }}-target="galleryGrid">
+                        {# Rendered dynamically by picker_controller.js from the JSON input value #}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="liveux-fm-picker-meta">
+                <span data-{{ ctrl }}-target="countLabel">0</span>
+                {% if max_files %}
+                    <span class="liveux-fm-muted">{{ 'picker.max'|liveux_fm_trans({'%max%': max_files}, fmLocale) }}</span>
+                {% endif %}
+            </div>
+        {% else %}
+            {% if resolvedVariant == 'card' %}
+                <input
+                    type="hidden"
+                    id="{{ id }}"
+                    name="{{ full_name }}"
+                    value="{{ value }}"
+                    {{ isDisabled ? 'disabled' : '' }}
+                    data-{{ ctrl }}-target="input"
+                    {% for attrname, attrvalue in attr %}{% if not (attrname|lower starts with 'on') and attrname|lower != 'disabled' and attrvalue is not same as(false) %}{% if attrvalue is same as(true) %}{{ attrname|e('html_attr') }} {% else %}{{ attrname|e('html_attr') }}="{{ attrvalue }}" {% endif %}{% endif %}{% endfor %}
+                />
+                <div class="liveux-fm-picker-vcard">
+                    <div class="liveux-fm-stage is-checker liveux-fm-picker-vcard-stage"
+                         role="button"
+                         tabindex="{{ isDisabled ? '-1' : '0' }}"
+                         aria-disabled="{{ isDisabled ? 'true' : 'false' }}"
+                         aria-label="{{ btnLabel }}"
+                         data-{{ ctrl }}-target="singlePreview"
+                         data-action="click->{{ ctrl }}#open keydown->{{ ctrl }}#onDropzoneKeydown">
+                        <span class="liveux-fm-muted liveux-fm-text-sm" aria-hidden="true">🖼️</span>
+                    </div>
+                    <div class="liveux-fm-picker-vcard-footer">
+                        <div class="liveux-fm-truncate liveux-fm-mono liveux-fm-muted liveux-fm-text-xs"{{ value is not empty ? ' dir="ltr"' : '' }} data-{{ ctrl }}-target="fileLabel">{{ value ?: emptyPlaceholder }}</div>
+                        <div class="liveux-fm-row-sm">
+                            <button type="button" class="liveux-fm-btn liveux-fm-btn-primary liveux-fm-btn-xs liveux-fm-grow" data-action="click->{{ ctrl }}#open"{{ isDisabled ? ' disabled' : '' }}>{{ btnLabel }}</button>
+                            <button type="button" class="liveux-fm-btn liveux-fm-btn-outline-danger liveux-fm-btn-xs" title="{{ clearLabel }}" aria-label="{{ clearLabel }}" data-{{ ctrl }}-target="clearBtn" data-action="click->{{ ctrl }}#clearSingle"{{ value is empty or isDisabled ? ' disabled' : '' }}>✕</button>
+                        </div>
+                    </div>
+                </div>
+            {% elseif resolvedVariant == 'dropzone' %}
+                <input
+                    type="hidden"
+                    id="{{ id }}"
+                    name="{{ full_name }}"
+                    value="{{ value }}"
+                    {{ isDisabled ? 'disabled' : '' }}
+                    data-{{ ctrl }}-target="input"
+                    {% for attrname, attrvalue in attr %}{% if not (attrname|lower starts with 'on') and attrname|lower != 'disabled' and attrvalue is not same as(false) %}{% if attrvalue is same as(true) %}{{ attrname|e('html_attr') }} {% else %}{{ attrname|e('html_attr') }}="{{ attrvalue }}" {% endif %}{% endif %}{% endfor %}
+                />
+                <div class="liveux-fm-picker-dropzone" data-{{ ctrl }}-target="dropzone" data-action="click->{{ ctrl }}#open">
+                    <div class="liveux-fm-picker-dropzone-preview" data-{{ ctrl }}-target="singlePreview"></div>
+                    <div class="liveux-fm-truncate liveux-fm-mono liveux-fm-muted liveux-fm-text-xs"{{ value is not empty ? ' dir="ltr"' : '' }} style="margin-bottom: 8px;" data-{{ ctrl }}-target="fileLabel">{{ value ?: emptyPlaceholder }}</div>
+                    <div class="liveux-fm-row-sm" style="justify-content: center;">
+                        <button type="button" class="liveux-fm-btn liveux-fm-btn-primary liveux-fm-btn-xs" data-action="click->{{ ctrl }}#open:stop"{{ isDisabled ? ' disabled' : '' }}>{{ btnLabel }}</button>
+                        <button type="button" class="liveux-fm-btn liveux-fm-btn-outline-danger liveux-fm-btn-xs" title="{{ clearLabel }}" aria-label="{{ clearLabel }}" data-{{ ctrl }}-target="clearBtn" data-action="click->{{ ctrl }}#clearSingle:stop"{{ value is empty or isDisabled ? ' disabled' : '' }}>✕</button>
+                    </div>
+                </div>
+            {% elseif resolvedVariant == 'avatar' %}
+                <input
+                    type="hidden"
+                    id="{{ id }}"
+                    name="{{ full_name }}"
+                    value="{{ value }}"
+                    {{ isDisabled ? 'disabled' : '' }}
+                    data-{{ ctrl }}-target="input"
+                    {% for attrname, attrvalue in attr %}{% if not (attrname|lower starts with 'on') and attrname|lower != 'disabled' and attrvalue is not same as(false) %}{% if attrvalue is same as(true) %}{{ attrname|e('html_attr') }} {% else %}{{ attrname|e('html_attr') }}="{{ attrvalue }}" {% endif %}{% endif %}{% endfor %}
+                />
+                <div class="liveux-fm-picker-avatar-wrap">
+                    <div class="liveux-fm-picker-avatar" role="button" tabindex="{{ isDisabled ? '-1' : '0' }}" aria-disabled="{{ isDisabled ? 'true' : 'false' }}" aria-label="{{ btnLabel }}" data-{{ ctrl }}-target="singlePreview" data-action="click->{{ ctrl }}#open keydown->{{ ctrl }}#onDropzoneKeydown">
+                        <span class="liveux-fm-muted" aria-hidden="true">👤</span>
+                    </div>
+                    <div class="liveux-fm-stack liveux-fm-minw-0">
+                        <div class="liveux-fm-truncate liveux-fm-mono liveux-fm-muted liveux-fm-text-xs"{{ value is not empty ? ' dir="ltr"' : '' }} data-{{ ctrl }}-target="fileLabel">{{ value ?: emptyPlaceholder }}</div>
+                        <div class="liveux-fm-row-sm">
+                            <button type="button" class="liveux-fm-btn liveux-fm-btn-primary liveux-fm-btn-xs" data-action="click->{{ ctrl }}#open"{{ isDisabled ? ' disabled' : '' }}>{{ btnLabel }}</button>
+                            <button type="button" class="liveux-fm-btn liveux-fm-btn-outline-danger liveux-fm-btn-xs" title="{{ clearLabel }}" aria-label="{{ clearLabel }}" data-{{ ctrl }}-target="clearBtn" data-action="click->{{ ctrl }}#clearSingle"{{ value is empty or isDisabled ? ' disabled' : '' }}>✕</button>
+                        </div>
+                    </div>
+                </div>
+            {% elseif resolvedVariant == 'input' %}
+                <div class="liveux-fm-picker-inputgroup">
+                    <input
+                        type="text"
+                        id="{{ id }}"
+                        name="{{ full_name }}"
+                        value="{{ value }}"
+                        readonly
+                        {{ value is not empty ? 'dir="ltr"' : '' }}
+                        {{ isDisabled ? 'disabled' : '' }}
+                        placeholder="{{ emptyPlaceholder }}"
+                        class="liveux-fm-input liveux-fm-mono liveux-fm-grow{{ attr.class is defined ? ' ' ~ attr.class : '' }}"
+                        data-{{ ctrl }}-target="input"
+                        {% for attrname, attrvalue in attr %}{% if not (attrname|lower starts with 'on') and attrname|lower not in ['class', 'disabled'] and attrvalue is not same as(false) %}{% if attrvalue is same as(true) %}{{ attrname|e('html_attr') }} {% else %}{{ attrname|e('html_attr') }}="{{ attrvalue }}" {% endif %}{% endif %}{% endfor %}
+                    />
+                    <button type="button" class="liveux-fm-btn liveux-fm-btn-primary liveux-fm-shrink-0" data-action="click->{{ ctrl }}#open"{{ isDisabled ? ' disabled' : '' }}>{{ btnLabel }}</button>
+                    <button type="button" class="liveux-fm-btn liveux-fm-btn-outline-danger liveux-fm-shrink-0" title="{{ clearLabel }}" aria-label="{{ clearLabel }}" data-{{ ctrl }}-target="clearBtn" data-action="click->{{ ctrl }}#clearSingle"{{ value is empty or isDisabled ? ' disabled' : '' }}>✕</button>
+                </div>
+            {% else %}
+                {# Default variant: compact #}
+                <div class="liveux-fm-picker-box liveux-fm-picker-single">
+                    {% if preview %}
+                        <div
+                            class="liveux-fm-stage is-checker liveux-fm-picker-thumb"
+                            role="button"
+                            tabindex="{{ isDisabled ? '-1' : '0' }}"
+                            aria-disabled="{{ isDisabled ? 'true' : 'false' }}"
+                            aria-label="{{ btnLabel }}"
+                            style="cursor: pointer;"
+                            data-{{ ctrl }}-target="singlePreview"
+                            data-action="click->{{ ctrl }}#open keydown->{{ ctrl }}#onDropzoneKeydown"
+                        >
+                            <span class="liveux-fm-muted liveux-fm-text-sm" aria-hidden="true">🖼️</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="liveux-fm-grow">
+                        <input
+                            type="text"
+                            id="{{ id }}"
+                            name="{{ full_name }}"
+                            value="{{ value }}"
+                            readonly
+                            {{ value is not empty ? 'dir="ltr"' : '' }}
+                            {{ isDisabled ? 'disabled' : '' }}
+                            placeholder="{{ emptyPlaceholder }}"
+                            class="liveux-fm-input liveux-fm-mono{{ attr.class is defined ? ' ' ~ attr.class : '' }}"
+                            data-{{ ctrl }}-target="input"
+                            {% for attrname, attrvalue in attr %}{% if not (attrname|lower starts with 'on') and attrname|lower not in ['class', 'disabled'] and attrvalue is not same as(false) %}{% if attrvalue is same as(true) %}{{ attrname|e('html_attr') }} {% else %}{{ attrname|e('html_attr') }}="{{ attrvalue }}" {% endif %}{% endif %}{% endfor %}
+                        />
+                    </div>
+
+                    <div class="liveux-fm-row-sm liveux-fm-shrink-0">
+                        <button type="button" class="liveux-fm-btn liveux-fm-btn-primary" data-action="click->{{ ctrl }}#open"{{ isDisabled ? ' disabled' : '' }}>{{ btnLabel }}</button>
+                        <button type="button" class="liveux-fm-btn liveux-fm-btn-outline-danger" title="{{ clearLabel }}" aria-label="{{ clearLabel }}" data-{{ ctrl }}-target="clearBtn" data-action="click->{{ ctrl }}#clearSingle"{{ value is empty or isDisabled ? ' disabled' : '' }}>✕</button>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}

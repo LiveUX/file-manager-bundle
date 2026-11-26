@@ -1,0 +1,85 @@
+{% set profileConfig = this.profileConfig %}
+{% set fmLocale = this.resolvedLocale %}
+{% set theme = this.resolvedTheme %}
+{% set colorScheme = this.resolvedColorScheme %}
+{% set listing = this.listing %}
+
+<div
+    {{ attributes }}
+    lang="{{ this.resolvedBcp47Locale }}"
+    dir="{{ this.isRtl ? 'rtl' : 'ltr' }}"
+    data-controller="liveux--file-manager-bundle--browser"
+    data-liveux--file-manager-bundle--browser-profile-value="{{ this.profile }}"
+    data-liveux--file-manager-bundle--browser-locale-value="{{ fmLocale }}"
+    data-liveux--file-manager-bundle--browser-volume-value="{{ this.volume }}"
+    data-liveux--file-manager-bundle--browser-volume-label-value="{{ this.activeVolume.label }}"
+    data-liveux--file-manager-bundle--browser-path-value="{{ this.path }}"
+    data-liveux--file-manager-bundle--browser-page-value="{{ listing.page }}"
+    data-liveux--file-manager-bundle--browser-per-page-value="{{ listing.perPage }}"
+    data-liveux--file-manager-bundle--browser-per-page-options-value="{{ this.perPageOptions|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-folder-open-on-value="{{ this.folderOpenOn }}"
+    data-liveux--file-manager-bundle--browser-view-mode-value="{{ this.viewMode }}"
+    data-liveux--file-manager-bundle--browser-multiple-value="{{ this.multiple ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-mode-value="{{ this.mode }}"
+    data-liveux--file-manager-bundle--browser-type-filter-value="{{ this.typeFilter }}"
+    data-liveux--file-manager-bundle--browser-sort-by-value="{{ this.sortBy }}"
+    data-liveux--file-manager-bundle--browser-sort-dir-value="{{ this.sortDirection }}"
+    data-liveux--file-manager-bundle--browser-thumbnails-enabled-value="{{ this.thumbnailsEnabled ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-lazy-load-value="{{ this.thumbnailLazyLoad ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-thumb-fit-value="{{ this.thumbFit }}"
+    data-liveux--file-manager-bundle--browser-tree-lines-value="{{ this.treeLines ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-show-tree-value="{{ (profileConfig.ui.show_folder_tree ?? true) ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-inspector-mode-value="{{ profileConfig.ui.inspector_mode ?? 'on_select' }}"
+    data-liveux--file-manager-bundle--browser-color-scheme-value="{{ colorScheme }}"
+    data-liveux--file-manager-bundle--browser-item-size-value="{{ this.resolvedItemSizePx }}"
+    data-liveux--file-manager-bundle--browser-card-aspect-ratio-value="{{ this.resolvedCardAspectRatio }}"
+    data-liveux--file-manager-bundle--browser-folder-style-value="{{ this.resolvedFolderStyle }}"
+    data-liveux--file-manager-bundle--browser-image-constraints-value="{{ this.imageConstraintsJson|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-list-url-value="{{ path('liveux_file_manager_api_list') }}"
+    data-liveux--file-manager-bundle--browser-tree-url-value="{{ path('liveux_file_manager_api_tree') }}"
+    data-liveux--file-manager-bundle--browser-trash-url-value="{{ path('liveux_file_manager_api_trash') }}"
+    data-liveux--file-manager-bundle--browser-preview-text-url-value="{{ path('liveux_file_manager_api_preview_text') }}"
+    data-liveux--file-manager-bundle--browser-action-url-value="{{ path('liveux_file_manager_api_action') }}"
+    data-liveux--file-manager-bundle--browser-upload-url-value="{{ path('liveux_file_manager_upload') }}"
+    data-liveux--file-manager-bundle--browser-image-edit-url-value="{{ path('liveux_file_manager_image_edit') }}"
+    data-liveux--file-manager-bundle--browser-zip-url-value="{{ path('liveux_file_manager_zip') }}"
+    data-liveux--file-manager-bundle--browser-csrf-token-value="{{ this.csrfToken }}"
+    data-liveux--file-manager-bundle--browser-upload-max-size-value="{{ this.uploadMaxSizeBytes }}"
+    data-liveux--file-manager-bundle--browser-upload-max-size-label-value="{{ this.uploadMaxSizeLabel }}"
+    data-liveux--file-manager-bundle--browser-chunk-size-value="{{ this.effectiveChunkSizeBytes }}"
+    data-liveux--file-manager-bundle--browser-chunk-enabled-value="{{ (profileConfig.chunkUpload.enabled ?? true) ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-parallel-uploads-value="{{ this.parallelUploads }}"
+    data-liveux--file-manager-bundle--browser-max-retries-value="{{ this.maxRetries }}"
+    data-liveux--file-manager-bundle--browser-initial-quota-value="{{ this.quotaSummary|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-upload-allow-value="{{ profileConfig.uploadAllow|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-upload-deny-value="{{ profileConfig.uploadDeny|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-remember-last-dir-value="{{ (profileConfig.ui.remember_last_dir ?? true) ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-double-click-to-select-value="{{ (profileConfig.ui.double_click_to_select ?? true) ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-keyboard-shortcuts-value="{{ (profileConfig.ui.keyboard_shortcuts ?? true) ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-confirm-move-value="{{ (profileConfig.ui.confirm_move ?? true) ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-initial-items-value="{{ this.initialItemsJson|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-initial-server-paginated-value="{{ this.initialServerPaginated ? 'true' : 'false' }}"
+    data-liveux--file-manager-bundle--browser-initial-total-value="{{ this.initialTotalCount }}"
+    data-liveux--file-manager-bundle--browser-initial-tree-value="{{ this.initialTreeJson|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-capabilities-value="{{ this.capabilities|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-i18n-value="{{ this.i18nJson|json_encode|e('html_attr') }}"
+    data-liveux--file-manager-bundle--browser-icon-set-value="{{ this.iconSetJson|json_encode|e('html_attr') }}"
+    data-fm-color-scheme="{{ colorScheme }}"
+    data-mobile-dialog-mode="{{ this.resolvedMobileDialogMode }}"
+    class="liveux-fm-root"
+    style="--liveux-fm-z-base: {{ this.resolvedZIndex }};"
+    tabindex="-1"
+>
+    {% if theme ends with '.html.twig' %}
+        {% include theme %}
+    {% elseif theme starts with '@' %}
+        {% include theme ~ '/layout.html.twig' %}
+    {% elseif this.isBuiltinTheme(theme) %}
+        {% include '@LiveUXFileManager/themes/' ~ theme ~ '/layout.html.twig' %}
+    {% else %}
+        {# Custom CSS-only theme token (e.g. theme: 'kurumsal') uses base layout automatically #}
+        <div data-liveux-theme="{{ theme }}" class="liveux-fm-theme-wrap">
+            {% include '@LiveUXFileManager/base/layout.html.twig' %}
+        </div>
+    {% endif %}
+</div>

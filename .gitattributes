@@ -1,0 +1,11 @@
+/docs export-ignore
+/tests export-ignore
+/.github export-ignore
+/AGENTS.md export-ignore
+/phpunit.xml.dist export-ignore
+/phpstan.dist.neon export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/CONTRIBUTING.md export-ignore
+/assets/node_modules export-ignore
+/assets/build.mjs export-ignore
+/assets/package-lock.json export-ignore

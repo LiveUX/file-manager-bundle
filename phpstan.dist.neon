@@ -1,0 +1,16 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - config
+    excludePaths:
+        # Optional third-party bridges (zero-lock-in: only loaded when host app installs them)
+        - src/Bridge/EasyAdmin
+        - src/Bridge/SymfonyAI
+    ignoreErrors:
+        # Optional cloud/image extensions guarded via class_exists() / extension_loaded() at runtime
+        - '#Aws\\S3\\S3Client#'
+        - '#League\\Flysystem\\AwsS3V3#'
+        - '#Imagick#'
+    reportUnmatchedIgnoredErrors: false
+    treatPhpDocTypesAsCertain: false
