@@ -120,10 +120,11 @@ final class ShareLinkServiceTest extends TestCase
         file_put_contents($this->storageDir . DIRECTORY_SEPARATOR . 'old.txt', 'expired-doc');
 
         [$provider, $registry, $normalizer, $signer, $service] = $this->buildStack();
-        $expiredUrl = $signer->sign(
-            'https://example.test/_liveux-file-manager/share?inline=0&path=old.txt&profile=default&volume=vault',
-            time() - 30,
-        );
+        $baseExpiredUrl = 'https://example.test/_liveux-file-manager/share?inline=0&path=old.txt&profile=default&volume=vault';
+        $expiredAt = time() - 30;
+        $expiredUrl = method_exists($signer, 'verify')
+            ? $signer->sign($baseExpiredUrl, $expiredAt)
+            : $signer->sign($baseExpiredUrl . '&_expiration=' . $expiredAt);
 
         $controller = new ShareController($provider, $registry, $normalizer, $service);
         $this->expectException(GoneHttpException::class);

@@ -518,7 +518,9 @@ final class TenthPassGlobalSecurityAuditTest extends TestCase
         $shareProvider = $this->createConfigProvider($openProfileShare);
         $shareReg = $this->createLocalRegistry($shareProvider);
         $shareUrlGen = $this->createStub(UrlGeneratorInterface::class);
-        $shareUrlGen->method('generate')->willReturn('https://example.test/_fm/share?profile=default&volume=local&path=vec.svg&inline=1&expires=' . (time() + 600));
+        $shareUrlGen->method('generate')->willReturnCallback(
+            static fn (string $route, array $params = []): string => 'https://example.test/_fm/share?' . http_build_query($params),
+        );
         $shareSvc = new ShareLinkService($shareReg, $norm, $shareUrlGen, $signer);
         $signed = $shareSvc->createSignedUrl($openProfileShare, 'vec.svg', 'local', 600, true);
         $shareCtrl = new ShareController($shareProvider, $shareReg, $norm, $shareSvc);

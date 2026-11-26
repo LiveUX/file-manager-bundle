@@ -353,8 +353,8 @@ final class TwelfthPassGlobalSecurityAuditTest extends TestCase
             $guard,
             thumbnailManager: $thumbMgr,
         );
-        $ops->createFolder($profile, '', 'SubFolder', 'local');
-        self::assertTrue($registry->getFilesystem($profile, 'local')->directoryExists('SubFolder'));
+        $createdFolder = $ops->createFolder($profile, '', 'SubFolder', 'local');
+        self::assertTrue($registry->getFilesystem($profile, 'local')->directoryExists($createdFolder));
     }
 
     public function testFullGraphWarmCacheZeroRescanDetectExternalVotersGuardAndIconCache(): void
