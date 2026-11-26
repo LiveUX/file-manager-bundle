@@ -74,7 +74,6 @@ composer require liveux/file-manager-bundle
 ```yaml
 liveux_file_manager:
     resource: '@FileManagerBundle/config/routes.php'
-    prefix: /_liveux-file-manager
 ```
 
 ### 3. Configure a Volume & Profile (`config/packages/liveux_file_manager.yaml`)
@@ -82,7 +81,6 @@ liveux_file_manager:
 liveux_file_manager:
     defaults:
         theme: tailwind # bootstrap5 | tailwind | shadcn | flowbite | daisyui | tabler | preline | material | unstyled
-        icon_set: classic
         locale: en
     volumes:
         uploads:
