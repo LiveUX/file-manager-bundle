@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Service;
 
-use League\Flysystem\DirectoryAttributes;
+use DateTimeInterface;
+use FilesystemIterator;
 use League\Flysystem\DirectoryListing;
-use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemOperator;
-use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\UnableToWriteFile;
 use LiveUX\FileManagerBundle\Config\VolumeConfig;
@@ -40,7 +39,7 @@ final class TrashManagerS3FallbackTest extends TestCase
             return;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         /** @var SplFileInfo $file */
@@ -60,31 +59,110 @@ final class TrashManagerS3FallbackTest extends TestCase
         $inner->write('reports/invoice.pdf', '%PDF-1.4 sample');
 
         // Decorator simulating Supabase bucket allowing ONLY PDFs (rejecting application/json .meta.json)
-        $restrictedFs = new class ($inner) implements FilesystemOperator {
+        $restrictedFs = new class($inner) implements FilesystemOperator {
             public function __construct(private readonly FilesystemOperator $inner)
             {
             }
 
-            public function fileExists(string $location): bool { return $this->inner->fileExists($location); }
-            public function directoryExists(string $location): bool { return $this->inner->directoryExists($location); }
-            public function has(string $location): bool { return $this->inner->has($location); }
-            public function read(string $location): string { return $this->inner->read($location); }
-            public function readStream(string $location) { return $this->inner->readStream($location); }
-            public function listContents(string $location, bool $deep = self::LIST_SHALLOW): DirectoryListing { return $this->inner->listContents($location, $deep); }
-            public function lastModified(string $path): int { return $this->inner->lastModified($path); }
-            public function fileSize(string $path): int { return $this->inner->fileSize($path); }
-            public function mimeType(string $path): string { return $this->inner->mimeType($path); }
-            public function visibility(string $path): string { return $this->inner->visibility($path); }
-            public function writeStream(string $location, $contents, array $config = []): void { $this->inner->writeStream($location, $contents, $config); }
-            public function setVisibility(string $path, string $visibility): void { $this->inner->setVisibility($path, $visibility); }
-            public function delete(string $location): void { $this->inner->delete($location); }
-            public function deleteDirectory(string $location): void { $this->inner->deleteDirectory($location); }
-            public function createDirectory(string $location, array $config = []): void { $this->inner->createDirectory($location, $config); }
-            public function move(string $source, string $destination, array $config = []): void { $this->inner->move($source, $destination, $config); }
-            public function copy(string $source, string $destination, array $config = []): void { $this->inner->copy($source, $destination, $config); }
-            public function publicUrl(string $path, array $config = []): string { return $this->inner->publicUrl($path, $config); }
-            public function temporaryUrl(string $path, \DateTimeInterface $expiresAt, array $config = []): string { return $this->inner->temporaryUrl($path, $expiresAt, $config); }
-            public function checksum(string $path, array $config = []): string { return $this->inner->checksum($path, $config); }
+            public function fileExists(string $location): bool
+            {
+                return $this->inner->fileExists($location);
+            }
+
+            public function directoryExists(string $location): bool
+            {
+                return $this->inner->directoryExists($location);
+            }
+
+            public function has(string $location): bool
+            {
+                return $this->inner->has($location);
+            }
+
+            public function read(string $location): string
+            {
+                return $this->inner->read($location);
+            }
+
+            public function readStream(string $location)
+            {
+                return $this->inner->readStream($location);
+            }
+
+            public function listContents(string $location, bool $deep = self::LIST_SHALLOW): DirectoryListing
+            {
+                return $this->inner->listContents($location, $deep);
+            }
+
+            public function lastModified(string $path): int
+            {
+                return $this->inner->lastModified($path);
+            }
+
+            public function fileSize(string $path): int
+            {
+                return $this->inner->fileSize($path);
+            }
+
+            public function mimeType(string $path): string
+            {
+                return $this->inner->mimeType($path);
+            }
+
+            public function visibility(string $path): string
+            {
+                return $this->inner->visibility($path);
+            }
+
+            public function writeStream(string $location, $contents, array $config = []): void
+            {
+                $this->inner->writeStream($location, $contents, $config);
+            }
+
+            public function setVisibility(string $path, string $visibility): void
+            {
+                $this->inner->setVisibility($path, $visibility);
+            }
+
+            public function delete(string $location): void
+            {
+                $this->inner->delete($location);
+            }
+
+            public function deleteDirectory(string $location): void
+            {
+                $this->inner->deleteDirectory($location);
+            }
+
+            public function createDirectory(string $location, array $config = []): void
+            {
+                $this->inner->createDirectory($location, $config);
+            }
+
+            public function move(string $source, string $destination, array $config = []): void
+            {
+                $this->inner->move($source, $destination, $config);
+            }
+
+            public function copy(string $source, string $destination, array $config = []): void
+            {
+                $this->inner->copy($source, $destination, $config);
+            }
+
+            public function publicUrl(string $path, array $config = []): string
+            {
+                return $this->inner->publicUrl($path, $config);
+            }
+
+            public function temporaryUrl(string $path, DateTimeInterface $expiresAt, array $config = []): string
+            {
+                return $this->inner->temporaryUrl($path, $expiresAt, $config);
+            }
+
+            public function checksum(string $path, array $config = []): string
+            {
+                return $this->inner->checksum($path, $config);
+            }
 
             public function write(string $location, string $contents, array $config = []): void
             {
@@ -113,7 +191,7 @@ final class TrashManagerS3FallbackTest extends TestCase
             ],
         );
 
-        $factory = new class ($restrictedFs) implements StorageFactoryInterface {
+        $factory = new class($restrictedFs) implements StorageFactoryInterface {
             public function __construct(private readonly FilesystemOperator $fs)
             {
             }

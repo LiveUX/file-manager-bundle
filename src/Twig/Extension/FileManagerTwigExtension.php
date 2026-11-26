@@ -11,6 +11,7 @@ use LiveUX\FileManagerBundle\Service\MessageTranslator;
 use LiveUX\FileManagerBundle\Service\RemoteUrlImporter;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
+use Stringable;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Throwable;
 use Twig\Extension\AbstractExtension;
@@ -159,7 +160,7 @@ final class FileManagerTwigExtension extends AbstractExtension
         ?string $volume = null,
         bool $preview = true,
     ): array {
-        if (!is_string($rawItem) && !is_int($rawItem) && !is_float($rawItem) && !$rawItem instanceof \Stringable) {
+        if (!is_string($rawItem) && !is_int($rawItem) && !is_float($rawItem) && !$rawItem instanceof Stringable) {
             return ['name' => '', 'href' => null, 'imgSrc' => null];
         }
 

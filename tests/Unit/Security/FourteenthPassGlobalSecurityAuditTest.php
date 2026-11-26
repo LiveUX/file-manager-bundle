@@ -6,10 +6,7 @@ namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use League\Flysystem\DirectoryAttributes;
-use League\Flysystem\FileAttributes;
-use League\Flysystem\FilesystemOperator;
-use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Bridge\SymfonyAI\SymfonyAiAssetEnricher;
 use LiveUX\FileManagerBundle\Command\InstallSkillsCommand;
@@ -17,7 +14,6 @@ use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
 use LiveUX\FileManagerBundle\Config\VolumeConfig;
-use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\Controller\ApiController;
 use LiveUX\FileManagerBundle\Controller\ShareController;
 use LiveUX\FileManagerBundle\Controller\ThumbnailController;
@@ -29,8 +25,6 @@ use LiveUX\FileManagerBundle\EventListener\AutoInjectDialogHostSubscriber;
 use LiveUX\FileManagerBundle\EventListener\CacheInvalidationListener;
 use LiveUX\FileManagerBundle\Exception\AccessDeniedException;
 use LiveUX\FileManagerBundle\Exception\InvalidPathException;
-use LiveUX\FileManagerBundle\Exception\UploadValidationException;
-use LiveUX\FileManagerBundle\FileManagerBundle;
 use LiveUX\FileManagerBundle\Form\FileManagerPickerType;
 use LiveUX\FileManagerBundle\Metadata\FolderMetadata;
 use LiveUX\FileManagerBundle\Metadata\JsonFileMetadataStorage;
@@ -53,9 +47,7 @@ use LiveUX\FileManagerBundle\Service\ShareLinkService;
 use LiveUX\FileManagerBundle\Service\StorageQuotaChecker;
 use LiveUX\FileManagerBundle\Service\TrashManager;
 use LiveUX\FileManagerBundle\Service\UploadManager;
-use LiveUX\FileManagerBundle\Service\ZipArchiveService;
 use LiveUX\FileManagerBundle\Storage\FlysystemStorageFactory;
-use LiveUX\FileManagerBundle\Storage\StorageFactoryInterface;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
@@ -65,7 +57,13 @@ use LiveUX\FileManagerBundle\Usage\AssetUsageCheckerInterface;
 use LiveUX\FileManagerBundle\Usage\AssetUsageReference;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
+use RuntimeException;
+use SplFileInfo;
+use stdClass;
+use Stringable;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
@@ -126,11 +124,11 @@ final class FourteenthPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -180,7 +178,7 @@ final class FourteenthPassGlobalSecurityAuditTest extends TestCase
         $wrappedContainer->register(DirectoryCacheManager::class, DirectoryCacheManager::class);
         $wrappedContainer->register(\LiveUX\FileManagerBundle\Metadata\FolderMetadataStorageInterface::class, NullMetadataStorage::class);
         $wrappedContainer->register(FileSecurityGuard::class, FileSecurityGuard::class);
-        $wrappedContainer->register('security.access.decision_manager', \stdClass::class);
+        $wrappedContainer->register('security.access.decision_manager', stdClass::class);
         $wrappedContainer->register('debug.security.access.decision_manager', TraceableAccessDecisionManager::class)
             ->setDecoratedService('security.access.decision_manager')
             ->setSynthetic(true);
@@ -238,7 +236,7 @@ final class FourteenthPassGlobalSecurityAuditTest extends TestCase
         self::assertFalse(FileSecurityGuard::looksLikeSvgDocument($mdFile), 'Markdown prose mentioning <svg> must NOT be reclassified as image/svg+xml.');
 
         $nsSvg = $this->tempDir . DIRECTORY_SEPARATOR . 'ns.txt';
-        file_put_contents($nsSvg, "\xEF\xBB\xBF<?xml version=\"1.0\"?><!-- " . str_repeat('x', 6000) . " --><s:svg xmlns:s=\"http://www.w3.org/2000/svg\"></s:svg>");
+        file_put_contents($nsSvg, "\xEF\xBB\xBF<?xml version=\"1.0\"?><!-- " . str_repeat('x', 6000) . ' --><s:svg xmlns:s="http://www.w3.org/2000/svg"></s:svg>');
         self::assertTrue(FileSecurityGuard::looksLikeSvgDocument($nsSvg), 'Namespaced <s:svg> after >4KB comment and BOM must be detected as SVG.');
     }
 
@@ -382,7 +380,7 @@ final class FourteenthPassGlobalSecurityAuditTest extends TestCase
             }
 
             /** @param array<mixed> $context */
-            public function log($level, string|\Stringable $message, array $context = []): void
+            public function log($level, string|Stringable $message, array $context = []): void
             {
                 $this->log[] = ['level' => $level, 'message' => (string) $message, 'context' => $context];
             }
@@ -426,11 +424,24 @@ final class FourteenthPassGlobalSecurityAuditTest extends TestCase
         $normalizer = new PathNormalizer();
         $registry = new VolumeRegistry($provider, new FlysystemStorageFactory(new DynamicPathResolver()));
         $signer = new UriSigner('pass14-share-secret');
-        $urlGen = new class() implements UrlGeneratorInterface {
+        $urlGen = new class implements UrlGeneratorInterface {
             private \Symfony\Component\Routing\RequestContext $ctx;
-            public function __construct() { $this->ctx = new \Symfony\Component\Routing\RequestContext(); }
-            public function setContext(\Symfony\Component\Routing\RequestContext $context): void { $this->ctx = $context; }
-            public function getContext(): \Symfony\Component\Routing\RequestContext { return $this->ctx; }
+
+            public function __construct()
+            {
+                $this->ctx = new \Symfony\Component\Routing\RequestContext();
+            }
+
+            public function setContext(\Symfony\Component\Routing\RequestContext $context): void
+            {
+                $this->ctx = $context;
+            }
+
+            public function getContext(): \Symfony\Component\Routing\RequestContext
+            {
+                return $this->ctx;
+            }
+
             /** @param array<string, mixed> $parameters */
             public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
             {
@@ -469,7 +480,7 @@ final class FourteenthPassGlobalSecurityAuditTest extends TestCase
         try {
             $jsonStore->save('local::a.jpg', new FolderMetadata(alt: 'Hero'));
             self::fail('Expected RuntimeException on corrupt existing metadata JSON.');
-        } catch (\RuntimeException) {
+        } catch (RuntimeException) {
             self::assertSame('{corrupt-json', file_get_contents($customMetaFile), 'Corrupt metadata file must not be overwritten.');
         }
 
@@ -534,7 +545,7 @@ final class FourteenthPassGlobalSecurityAuditTest extends TestCase
         self::assertNotNull($reflDir->invoke($cmd, '.agents/skills'));
 
         // 3. AssetUsageGuardService rejects hostless https:foo and https:///foo
-        $checker = new class() implements AssetUsageCheckerInterface {
+        $checker = new class implements AssetUsageCheckerInterface {
             public function findUsages(ProfileConfig $profile, VolumeConfig $volume, string $path, bool $isFolder = false): array
             {
                 return [

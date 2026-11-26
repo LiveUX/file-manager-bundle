@@ -269,17 +269,17 @@ final class JsonFileMetadataStorage implements FolderMetadataStorageInterface, R
     {
         $dir = \dirname($this->filePath);
         if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
-            throw new \RuntimeException(sprintf('Unable to create metadata directory "%s".', $dir));
+            throw new RuntimeException(sprintf('Unable to create metadata directory "%s".', $dir));
         }
 
         $lockFp = @fopen($this->filePath . '.lock', 'c+b');
         if ($lockFp === false) {
-            throw new \RuntimeException(sprintf('Unable to open metadata lock file "%s.lock".', $this->filePath));
+            throw new RuntimeException(sprintf('Unable to open metadata lock file "%s.lock".', $this->filePath));
         }
 
         try {
             if (!flock($lockFp, LOCK_EX)) {
-                throw new \RuntimeException(sprintf('Unable to acquire exclusive lock on "%s.lock".', $this->filePath));
+                throw new RuntimeException(sprintf('Unable to acquire exclusive lock on "%s.lock".', $this->filePath));
             }
 
             $current = $this->readCurrentUnderLock();
@@ -297,7 +297,7 @@ final class JsonFileMetadataStorage implements FolderMetadataStorageInterface, R
 
             $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             if (!is_string($json)) {
-                throw new \RuntimeException('Failed to encode metadata JSON payload.');
+                throw new RuntimeException('Failed to encode metadata JSON payload.');
             }
             $this->writeAtomically($json);
 
@@ -321,7 +321,7 @@ final class JsonFileMetadataStorage implements FolderMetadataStorageInterface, R
 
         $raw = @file_get_contents($this->filePath);
         if ($raw === false) {
-            throw new \RuntimeException(sprintf('Unable to read existing metadata file "%s".', $this->filePath));
+            throw new RuntimeException(sprintf('Unable to read existing metadata file "%s".', $this->filePath));
         }
         if (trim($raw) === '') {
             return [];
@@ -329,7 +329,7 @@ final class JsonFileMetadataStorage implements FolderMetadataStorageInterface, R
 
         $decoded = json_decode($raw, true);
         if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
-            throw new \RuntimeException(sprintf('Refusing to overwrite unreadable or corrupt metadata JSON file "%s".', $this->filePath));
+            throw new RuntimeException(sprintf('Refusing to overwrite unreadable or corrupt metadata JSON file "%s".', $this->filePath));
         }
 
         return $this->decodePayload($raw);

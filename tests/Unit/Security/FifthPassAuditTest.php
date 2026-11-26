@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Command\InstallSkillsCommand;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
-use LiveUX\FileManagerBundle\Config\VolumeConfig;
 use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\Controller\ApiController;
 use LiveUX\FileManagerBundle\Controller\DownloadController;
@@ -37,7 +37,6 @@ use LiveUX\FileManagerBundle\Service\DirectoryLister;
 use LiveUX\FileManagerBundle\Service\DuplicateDetector;
 use LiveUX\FileManagerBundle\Service\FilenameNormalizer;
 use LiveUX\FileManagerBundle\Service\FileOperationsService;
-use LiveUX\FileManagerBundle\Service\ImageOptimizer;
 use LiveUX\FileManagerBundle\Service\MessageTranslator;
 use LiveUX\FileManagerBundle\Service\RemoteUrlImporter;
 use LiveUX\FileManagerBundle\Service\ShareLinkService;
@@ -51,6 +50,9 @@ use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
 use LiveUX\FileManagerBundle\Twig\Extension\FileManagerTwigExtension;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -87,11 +89,11 @@ final class FifthPassAuditTest extends TestCase
         if (!is_dir($this->tempDir)) {
             return;
         }
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -662,6 +664,7 @@ final class FifthPassAuditTest extends TestCase
     /**
      * @param array<string, mixed> $naming
      * @param array<string, mixed> $security
+     *
      * @return array{0: ProfileConfig, 1: VolumeRegistry, 2: FileOperationsService, 3: ConfigProviderInterface}
      */
     private function buildSimpleOps(array $naming = [], array $security = []): array
@@ -696,7 +699,7 @@ final class FifthPassAuditTest extends TestCase
 
     private function makeSecurityResolverForIdentifier(string $identifier): DynamicPathResolver
     {
-        $user = new class ($identifier) implements UserInterface {
+        $user = new class($identifier) implements UserInterface {
             public function __construct(private readonly string $id)
             {
             }

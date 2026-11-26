@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Storage;
 
+use DateTimeImmutable;
 use League\Flysystem\FilesystemOperator;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
@@ -84,11 +85,7 @@ final readonly class VolumeRegistry
             }
         }
 
-        throw new FileManagerException(
-            sprintf('Volume "%s" is not attached to profile "%s".', $volumeName, $profile->name),
-            'errors.volume_not_attached',
-            ['%volume%' => $volumeName, '%profile%' => $profile->name],
-        );
+        throw new FileManagerException(sprintf('Volume "%s" is not attached to profile "%s".', $volumeName, $profile->name), 'errors.volume_not_attached', ['%volume%' => $volumeName, '%profile%' => $profile->name]);
     }
 
     public function getRawVolumeForProfile(ProfileConfig $profile, ?string $volumeName = null): VolumeConfig
@@ -104,17 +101,13 @@ final readonly class VolumeRegistry
             }
         }
 
-        throw new FileManagerException(
-            sprintf('Volume "%s" is not attached to profile "%s".', $volumeName, $profile->name),
-            'errors.volume_not_attached',
-            ['%volume%' => $volumeName, '%profile%' => $profile->name],
-        );
+        throw new FileManagerException(sprintf('Volume "%s" is not attached to profile "%s".', $volumeName, $profile->name), 'errors.volume_not_attached', ['%volume%' => $volumeName, '%profile%' => $profile->name]);
     }
 
     public function getVolumeForProfileWithContext(
         ProfileConfig $profile,
         ?string $volumeName = null,
-        ?\DateTimeImmutable $fixedDate = null,
+        ?DateTimeImmutable $fixedDate = null,
         ?string $overrideUserId = null,
     ): VolumeConfig {
         $raw = $this->getRawVolumeForProfile($profile, $volumeName);
@@ -130,7 +123,7 @@ final readonly class VolumeRegistry
     public function getFilesystemWithContext(
         ProfileConfig $profile,
         ?string $volumeName = null,
-        ?\DateTimeImmutable $fixedDate = null,
+        ?DateTimeImmutable $fixedDate = null,
         ?string $overrideUserId = null,
     ): FilesystemOperator {
         return $this->storageFactory->create(
@@ -140,7 +133,7 @@ final readonly class VolumeRegistry
 
     private function resolveDynamicVolume(
         VolumeConfig $volume,
-        ?\DateTimeImmutable $fixedDate = null,
+        ?DateTimeImmutable $fixedDate = null,
         ?string $overrideUserId = null,
     ): VolumeConfig {
         $hasDynamicPath = $volume->path !== null && DynamicPathResolver::containsDynamicTokens($volume->path);

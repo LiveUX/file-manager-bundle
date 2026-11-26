@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Controller;
 
+use DateTimeImmutable;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\FilesystemOperator;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
 use LiveUX\FileManagerBundle\Exception\AccessDeniedException;
@@ -13,8 +16,6 @@ use LiveUX\FileManagerBundle\Security\PathNormalizer;
 use LiveUX\FileManagerBundle\Service\MessageTranslator;
 use LiveUX\FileManagerBundle\Service\ShareLinkService;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
-use League\Flysystem\FilesystemException;
-use League\Flysystem\FilesystemOperator;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -122,7 +123,7 @@ final readonly class ShareController
         return $signedUser;
     }
 
-    private function resolveSignedDateContext(Request $request, \LiveUX\FileManagerBundle\Config\VolumeConfig $rawVolume): ?\DateTimeImmutable
+    private function resolveSignedDateContext(Request $request, \LiveUX\FileManagerBundle\Config\VolumeConfig $rawVolume): ?DateTimeImmutable
     {
         if (!ShareLinkService::volumeUsesDateTokens($rawVolume)) {
             return null;
@@ -134,7 +135,7 @@ final readonly class ShareController
             throw new AccessDeniedException('Invalid or missing date scope in share link.', 'errors.share_link_invalid');
         }
 
-        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $signedDate);
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $signedDate);
         if ($parsed === false || $parsed->format('Y-m-d') !== $signedDate) {
             throw new AccessDeniedException('Invalid date scope in share link.', 'errors.share_link_invalid');
         }

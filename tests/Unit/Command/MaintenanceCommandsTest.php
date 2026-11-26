@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Command;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Command\CacheClearCommand;
 use LiveUX\FileManagerBundle\Command\OptimizeImagesCommand;
 use LiveUX\FileManagerBundle\Command\StorageStatsCommand;
@@ -24,6 +25,9 @@ use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -291,11 +295,11 @@ final class MaintenanceCommandsTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->isDir()) {
                 @rmdir($file->getPathname());

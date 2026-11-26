@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Command;
 
+use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -317,7 +318,7 @@ final class InstallSkillsCommand extends Command
         $parentDir = dirname($targetPath);
         $this->assertNoSymlinkedAncestors($parentDir);
         if (!is_dir($parentDir) && !@mkdir($parentDir, 0775, true) && !is_dir($parentDir)) {
-            throw new \RuntimeException(sprintf('Unable to create destination directory "%s".', $parentDir));
+            throw new RuntimeException(sprintf('Unable to create destination directory "%s".', $parentDir));
         }
 
         if ($exists) {
@@ -336,7 +337,7 @@ final class InstallSkillsCommand extends Command
     private function copyDirectory(string $source, string $destination): void
     {
         if (!is_dir($destination) && !@mkdir($destination, 0775, true) && !is_dir($destination)) {
-            throw new \RuntimeException(sprintf('Unable to create directory "%s".', $destination));
+            throw new RuntimeException(sprintf('Unable to create directory "%s".', $destination));
         }
 
         $entries = scandir($source);
@@ -356,7 +357,7 @@ final class InstallSkillsCommand extends Command
             if (is_dir($srcPath)) {
                 $this->copyDirectory($srcPath, $dstPath);
             } elseif (!copy($srcPath, $dstPath)) {
-                throw new \RuntimeException(sprintf('Unable to copy "%s" to "%s".', $srcPath, $dstPath));
+                throw new RuntimeException(sprintf('Unable to copy "%s" to "%s".', $srcPath, $dstPath));
             }
         }
     }
@@ -411,7 +412,7 @@ final class InstallSkillsCommand extends Command
                 break;
             }
             if (is_link($cursor)) {
-                throw new \RuntimeException(sprintf('Refusing to write through symlinked ancestor directory "%s".', $cursor));
+                throw new RuntimeException(sprintf('Refusing to write through symlinked ancestor directory "%s".', $cursor));
             }
             $parent = dirname($cursor);
             if ($parent === $cursor) {
@@ -421,7 +422,7 @@ final class InstallSkillsCommand extends Command
         }
 
         if (!$reachedProjectRoot) {
-            throw new \RuntimeException(sprintf('Refusing to write to directory "%s": ancestor validation did not reach project root.', $directory));
+            throw new RuntimeException(sprintf('Refusing to write to directory "%s": ancestor validation did not reach project root.', $directory));
         }
     }
 

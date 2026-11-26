@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Service;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\Security\PathNormalizer;
@@ -40,7 +41,7 @@ final class StorageQuotaBreakdownTest extends TestCase
             return;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         /** @var SplFileInfo $file */

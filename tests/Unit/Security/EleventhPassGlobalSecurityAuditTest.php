@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
+use FilesystemIterator;
+use GdImage;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Bridge\EasyAdmin\FileManagerField;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
@@ -33,8 +35,13 @@ use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Twig\Extension\FileManagerTwigExtension;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
+use PDO;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use ReflectionClass;
 use ReflectionMethod;
+use SplFileInfo;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Config\Definition\Processor;
@@ -71,11 +78,11 @@ final class EleventhPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -97,7 +104,7 @@ final class EleventhPassGlobalSecurityAuditTest extends TestCase
         // CVE-2026-102601 requires league/flysystem >= 3.35.3
         self::assertSame('^3.35.3', $composer['require']['league/flysystem'] ?? null);
 
-        $guardRefl = new \ReflectionClass(FileSecurityGuard::class);
+        $guardRefl = new ReflectionClass(FileSecurityGuard::class);
         /** @var list<string> $blockedMimes */
         $blockedMimes = $guardRefl->getConstant('BLOCKED_ACTIVE_MIMES');
 
@@ -456,9 +463,9 @@ final class EleventhPassGlobalSecurityAuditTest extends TestCase
             self::markTestSkipped('ext-gd unavailable');
         }
 
-        $makeLandscape = static function (): \GdImage {
+        $makeLandscape = static function (): GdImage {
             $img = imagecreatetruecolor(20, 10);
-            self::assertInstanceOf(\GdImage::class, $img);
+            self::assertInstanceOf(GdImage::class, $img);
             imagefill($img, 0, 0, (int) imagecolorallocate($img, 0, 0, 0));
             $red = (int) imagecolorallocate($img, 255, 0, 0);
             imagesetpixel($img, 0, 0, $red);
@@ -468,7 +475,7 @@ final class EleventhPassGlobalSecurityAuditTest extends TestCase
 
         $src5 = $makeLandscape();
         $res5 = $gdRefl->invoke(new GdThumbnailDriver(), $src5, 5);
-        self::assertInstanceOf(\GdImage::class, $res5);
+        self::assertInstanceOf(GdImage::class, $res5);
         self::assertSame(10, imagesx($res5));
         self::assertSame(20, imagesy($res5));
         self::assertSame(255, (imagecolorat($res5, 0, 0) >> 16) & 0xFF);
@@ -479,7 +486,7 @@ final class EleventhPassGlobalSecurityAuditTest extends TestCase
 
         $srcOpt = $makeLandscape();
         $resOpt = $optRefl->invoke(new ImageOptimizer(), $srcOpt, 7);
-        self::assertInstanceOf(\GdImage::class, $resOpt);
+        self::assertInstanceOf(GdImage::class, $resOpt);
         self::assertSame(10, imagesx($resOpt));
         self::assertSame(20, imagesy($resOpt));
         self::assertSame(255, (imagecolorat($resOpt, 9, 19) >> 16) & 0xFF);
@@ -491,7 +498,7 @@ final class EleventhPassGlobalSecurityAuditTest extends TestCase
 
     public function testFolderMetadataZwnjEdgeCleanupAndDbalNfdNfcDedup(): void
     {
-        if (!class_exists(DriverManager::class) || !in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+        if (!class_exists(DriverManager::class) || !in_array('sqlite', PDO::getAvailableDrivers(), true)) {
             self::markTestSkipped('Doctrine DBAL or pdo_sqlite unavailable');
         }
 
@@ -637,7 +644,7 @@ final class EleventhPassGlobalSecurityAuditTest extends TestCase
         $profileMap = is_array($profiles) ? $profiles : [$profiles->name => $profiles];
         $vol = $volume ?? new VolumeConfig('local', 'Local', 'local', 'LocalFileSystem', $this->tempDir, '/uploads');
 
-        return new class ($profileMap, $vol) implements ConfigProviderInterface {
+        return new class($profileMap, $vol) implements ConfigProviderInterface {
             /**
              * @param array<string, ProfileConfig> $profiles
              */

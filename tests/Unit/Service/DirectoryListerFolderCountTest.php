@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Service;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\DependencyInjection\Configuration;
@@ -45,7 +46,7 @@ final class DirectoryListerFolderCountTest extends TestCase
             return;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         /** @var SplFileInfo $file */
@@ -186,6 +187,7 @@ final class DirectoryListerFolderCountTest extends TestCase
 
     /**
      * @param array<string, array<string, mixed>> $profiles
+     *
      * @return array{0: DirectoryLister, 1: YamlConfigProvider}
      */
     private function createLister(array $profiles): array
@@ -225,6 +227,7 @@ final class DirectoryListerFolderCountTest extends TestCase
 
     /**
      * @param list<object> $items
+     *
      * @return array<string, ?int>
      */
     private function extractFolderCounts(array $items): array

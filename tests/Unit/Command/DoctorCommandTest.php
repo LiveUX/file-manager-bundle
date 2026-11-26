@@ -20,6 +20,7 @@ use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -71,7 +72,7 @@ final class DoctorCommandTest extends TestCase
     public function testCheckRemoteDiagnosesKnownCloudErrors(string $rawExceptionMessage, string $expectedRemediation): void
     {
         $fs = $this->createStub(FilesystemOperator::class);
-        $fs->method('listContents')->willThrowException(new \RuntimeException($rawExceptionMessage));
+        $fs->method('listContents')->willThrowException(new RuntimeException($rawExceptionMessage));
 
         $factory = $this->createStub(StorageFactoryInterface::class);
         $factory->method('create')->willReturn($fs);

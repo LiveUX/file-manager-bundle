@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
@@ -34,6 +35,9 @@ use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -739,11 +743,11 @@ final class ExtremeSecurityTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->isDir()) {
                 @rmdir($file->getPathname());

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\AI\AssetEnrichmentResult;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
@@ -15,7 +16,6 @@ use LiveUX\FileManagerBundle\DependencyInjection\Configuration;
 use LiveUX\FileManagerBundle\Event\FileUploadedEvent;
 use LiveUX\FileManagerBundle\EventListener\CacheInvalidationListener;
 use LiveUX\FileManagerBundle\Exception\AccessDeniedException;
-use LiveUX\FileManagerBundle\Exception\InvalidPathException;
 use LiveUX\FileManagerBundle\Icon\IconSetRegistry;
 use LiveUX\FileManagerBundle\Metadata\FolderMetadata;
 use LiveUX\FileManagerBundle\Metadata\JsonFileMetadataStorage;
@@ -42,7 +42,11 @@ use LiveUX\FileManagerBundle\Twig\Extension\FileManagerTwigExtension;
 use LiveUX\FileManagerBundle\Util\ByteSizeParser;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
+use RuntimeException;
+use SplFileInfo;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Config\Definition\Processor;
@@ -74,11 +78,11 @@ final class TwelfthPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -325,7 +329,7 @@ final class TwelfthPassGlobalSecurityAuditTest extends TestCase
         try {
             $badStorage->save('local::pic.png', new FolderMetadata(title: 'fail'));
             self::fail('Expected RuntimeException on unwritable metadata target.');
-        } catch (\RuntimeException) {
+        } catch (RuntimeException) {
             $this->addToAssertionCount(1);
         }
 
@@ -464,6 +468,7 @@ final class TwelfthPassGlobalSecurityAuditTest extends TestCase
 
     /**
      * @param list<object> $items
+     *
      * @return array<string, ?int>
      */
     private function extractFolderCounts(array $items): array
@@ -480,7 +485,7 @@ final class TwelfthPassGlobalSecurityAuditTest extends TestCase
     }
 
     /**
-     * @param list<string> $volumes
+     * @param list<string>         $volumes
      * @param array<string, mixed> $security
      * @param array<string, mixed> $trash
      * @param array<string, mixed> $cache
@@ -535,7 +540,7 @@ final class TwelfthPassGlobalSecurityAuditTest extends TestCase
 
     /**
      * @param ProfileConfig|array<string, ProfileConfig> $profiles
-     * @param list<VolumeConfig> $volumes
+     * @param list<VolumeConfig>                         $volumes
      */
     private function createConfigProvider(ProfileConfig|array $profiles, array $volumes = []): ConfigProviderInterface
     {
@@ -548,10 +553,10 @@ final class TwelfthPassGlobalSecurityAuditTest extends TestCase
             $volumeMap['local'] = new VolumeConfig('local', 'Local', 'local', 'LocalFileSystem', $this->tempDir, '/uploads');
         }
 
-        return new class ($profileMap, $volumeMap) implements ConfigProviderInterface {
+        return new class($profileMap, $volumeMap) implements ConfigProviderInterface {
             /**
              * @param array<string, ProfileConfig> $profiles
-             * @param array<string, VolumeConfig> $volumes
+             * @param array<string, VolumeConfig>  $volumes
              */
             public function __construct(private array $profiles, private array $volumes)
             {

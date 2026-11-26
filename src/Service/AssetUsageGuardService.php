@@ -203,11 +203,7 @@ final readonly class AssetUsageGuardService
             ],
         };
 
-        throw new FileManagerException(
-            $fallbackMessage,
-            $translationKey,
-            ['%name%' => $name, '%count%' => $count],
-        );
+        throw new FileManagerException($fallbackMessage, $translationKey, ['%name%' => $name, '%count%' => $count]);
     }
 
     /**

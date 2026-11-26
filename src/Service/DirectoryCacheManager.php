@@ -32,7 +32,9 @@ final class DirectoryCacheManager
 
     /**
      * @template T
+     *
      * @param callable(): T $loader
+     *
      * @return array{data: T, hit: bool}
      */
     public function remember(
@@ -189,7 +191,9 @@ final class DirectoryCacheManager
 
     /**
      * @template T
+     *
      * @param callable(): T $loader
+     *
      * @return array{data: T, hit: bool}
      */
     private function rememberWithTags(
@@ -226,7 +230,9 @@ final class DirectoryCacheManager
 
     /**
      * @template T
+     *
      * @param callable(): T $loader
+     *
      * @return array{data: T, hit: bool}
      */
     private function rememberWithGenerations(
@@ -306,6 +312,7 @@ final class DirectoryCacheManager
 
     /**
      * @param list<string> $keys
+     *
      * @return array<string, string>
      */
     private function readGenerations(array $keys): array

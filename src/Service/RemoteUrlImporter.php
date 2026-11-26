@@ -17,6 +17,7 @@ use LiveUX\FileManagerBundle\Util\ByteSizeParser;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Throwable;
 
 /**
  * SSRF-hardened Remote URL File Importer.
@@ -120,10 +121,7 @@ final readonly class RemoteUrlImporter
 
         foreach ($ips as $ip) {
             if (!$this->isPublicIp($ip)) {
-                throw new UploadValidationException(
-                    'Access to private or reserved IP ranges is blocked (SSRF protection).',
-                    'errors.remote_ssrf_blocked',
-                );
+                throw new UploadValidationException('Access to private or reserved IP ranges is blocked (SSRF protection).', 'errors.remote_ssrf_blocked');
             }
         }
 
@@ -415,10 +413,7 @@ final readonly class RemoteUrlImporter
         for ($hop = 0; $hop <= self::MAX_REDIRECTS; ++$hop) {
             // Without cURL the host would be re-resolved by PHP streams (DNS rebinding / TOCTOU), so the importer refuses to run.
             if (!function_exists('curl_init')) {
-                throw new UploadValidationException(
-                    'Remote URL import requires the PHP cURL extension (DNS-pinned SSRF protection).',
-                    'errors.remote_import_requires_curl',
-                );
+                throw new UploadValidationException('Remote URL import requires the PHP cURL extension (DNS-pinned SSRF protection).', 'errors.remote_import_requires_curl');
             }
 
             [$status, $headers] = $this->fetchSingleHopWithCurl($currentUrl, $resolved, $destPath, $maxBytes);
@@ -435,11 +430,7 @@ final readonly class RemoteUrlImporter
             }
 
             if ($status < 200 || $status >= 300) {
-                throw new UploadValidationException(
-                    sprintf('Remote server returned HTTP %d.', $status),
-                    'errors.remote_http_error',
-                    ['%status%' => $status],
-                );
+                throw new UploadValidationException(sprintf('Remote server returned HTTP %d.', $status), 'errors.remote_http_error', ['%status%' => $status]);
             }
 
             return [$currentUrl, $headers];
@@ -566,6 +557,7 @@ final readonly class RemoteUrlImporter
 
     /**
      * @param list<mixed> $headers
+     *
      * @return list<string>
      */
     private function findAllHeaders(array $headers, string $name): array
@@ -660,7 +652,7 @@ final readonly class RemoteUrlImporter
         $candidateName = $safeStem . '.' . $resolvedExt;
         try {
             $this->fileSecurityGuard->assertSafeFilename($candidateName, strictOsChars: false);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $candidateName = 'imported-' . $candidateName;
         }
 
@@ -706,7 +698,7 @@ final readonly class RemoteUrlImporter
         try {
             $this->fileSecurityGuard->assertSafeFilename($reconciled, strictOsChars: false);
             $this->fileSecurityGuard->assertMimeMatchesExtension($reconciled, $detectedMime);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
 

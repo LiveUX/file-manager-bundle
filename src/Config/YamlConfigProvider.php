@@ -9,7 +9,7 @@ use LiveUX\FileManagerBundle\Exception\FileManagerException;
 final readonly class YamlConfigProvider implements ConfigProviderInterface
 {
     /**
-     * @param array<string, mixed>               $defaults
+     * @param array<string, mixed>                $defaults
      * @param array<string, array<string, mixed>> $volumes
      * @param array<string, array<string, mixed>> $profiles
      */
@@ -28,11 +28,7 @@ final readonly class YamlConfigProvider implements ConfigProviderInterface
     public function getProfile(string $name): ProfileConfig
     {
         if (!isset($this->profiles[$name])) {
-            throw new FileManagerException(
-                sprintf('FileManager profile "%s" is not configured.', $name),
-                'errors.profile_not_found',
-                ['%profile%' => $name],
-            );
+            throw new FileManagerException(sprintf('FileManager profile "%s" is not configured.', $name), 'errors.profile_not_found', ['%profile%' => $name]);
         }
 
         return $this->hydrateProfile($name, $this->profiles[$name]);
@@ -51,11 +47,7 @@ final readonly class YamlConfigProvider implements ConfigProviderInterface
     public function getVolume(string $name): VolumeConfig
     {
         if (!isset($this->volumes[$name])) {
-            throw new FileManagerException(
-                sprintf('FileManager volume "%s" is not configured.', $name),
-                'errors.volume_not_found',
-                ['%volume%' => $name],
-            );
+            throw new FileManagerException(sprintf('FileManager volume "%s" is not configured.', $name), 'errors.volume_not_found', ['%volume%' => $name]);
         }
 
         return $this->hydrateVolume($name, $this->volumes[$name]);

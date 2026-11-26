@@ -9,13 +9,14 @@ use LiveUX\FileManagerBundle\Security\PathNormalizer;
 use LiveUX\FileManagerBundle\Security\SvgSanitizer;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Contracts\Service\ResetInterface;
+use Throwable;
 
 /**
  * Loads SVG icon sets from resources/icons/<set_name>/ (or an explicitly configured custom directory path)
  * across three namespaces:
  *   - icons  (file & folder icons: folder, file, pdf, excel, word, zip, video, audio, code)
  *   - ui     (all toolbar, sidebar, context menu, inspector & modal chrome icons — overridable via <dir>/ui/<key>.svg)
- *   - badges (folder badge overlay icons — overridable & extensible via <dir>/badges/<key>.svg)
+ *   - badges (folder badge overlay icons — overridable & extensible via <dir>/badges/<key>.svg).
  */
 final class IconSetRegistry implements ResetInterface
 {
@@ -112,7 +113,7 @@ final class IconSetRegistry implements ResetInterface
                         return $this->cache[$cacheKey] = $cached;
                     }
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
             }
         }
 
@@ -139,7 +140,7 @@ final class IconSetRegistry implements ResetInterface
                 $item->set($payload);
                 $item->expiresAfter(86400);
                 $this->cachePool->save($item);
-            } catch (\Throwable) {
+            } catch (Throwable) {
             }
         }
 

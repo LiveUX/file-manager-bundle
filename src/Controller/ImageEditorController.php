@@ -152,11 +152,7 @@ final readonly class ImageEditorController
 
             if ($saveMode === 'overwrite') {
                 if ($profile->overwritePolicy === 'reject') {
-                    throw new FileManagerException(
-                        'Overwriting existing files is disabled for this profile.',
-                        'errors.upload_file_exists',
-                        ['%name%' => PathNormalizer::basenameUtf8($cleanPath)],
-                    );
+                    throw new FileManagerException('Overwriting existing files is disabled for this profile.', 'errors.upload_file_exists', ['%name%' => PathNormalizer::basenameUtf8($cleanPath)]);
                 }
                 $this->usageGuard?->assertAllowed($profile, $volume, $cleanPath, false, 'overwrite');
             } elseif ($this->duplicateDetector !== null && $this->duplicateDetector->isEnabled($profile) && $this->duplicateDetector->getPolicy($profile) === 'reject') {
@@ -233,11 +229,7 @@ final readonly class ImageEditorController
     {
         $maxBytes = $this->parseByteSize($profile->uploadMaxSize);
         if ($maxBytes > 0 && $file->getSize() > $maxBytes) {
-            throw new FileManagerException(
-                sprintf('Edited image exceeds maximum allowed size (%s).', $profile->uploadMaxSize),
-                'errors.edited_image_too_large',
-                ['%max%' => $profile->uploadMaxSize],
-            );
+            throw new FileManagerException(sprintf('Edited image exceeds maximum allowed size (%s).', $profile->uploadMaxSize), 'errors.edited_image_too_large', ['%max%' => $profile->uploadMaxSize]);
         }
 
         $mime = (string) $file->getMimeType();
@@ -253,19 +245,11 @@ final readonly class ImageEditorController
     private function assertProfileAllowsMime(ProfileConfig $profile, string $mime): void
     {
         if ($this->fileSecurityGuard->matchesMimeList($mime, $profile->uploadDeny)) {
-            throw new FileManagerException(
-                sprintf('MIME type "%s" is denied by upload_deny policy.', $mime),
-                'errors.upload_mime_denied',
-                ['%mime%' => $mime],
-            );
+            throw new FileManagerException(sprintf('MIME type "%s" is denied by upload_deny policy.', $mime), 'errors.upload_mime_denied', ['%mime%' => $mime]);
         }
 
         if ($profile->uploadAllow !== [] && !$this->fileSecurityGuard->matchesMimeList($mime, $profile->uploadAllow)) {
-            throw new FileManagerException(
-                sprintf('MIME type "%s" is not in upload_allow list.', $mime),
-                'errors.upload_mime_not_allowed',
-                ['%mime%' => $mime],
-            );
+            throw new FileManagerException(sprintf('MIME type "%s" is not in upload_allow list.', $mime), 'errors.upload_mime_not_allowed', ['%mime%' => $mime]);
         }
     }
 
@@ -310,11 +294,7 @@ final readonly class ImageEditorController
         [$cleanBinary, $finalMime, $finalW, $finalH] = $this->reencodeAndOptimize($binary, $detectedMime, $profile, $cleanPath, $saveMode, $w, $h);
         $maxBytes = $this->parseByteSize($profile->uploadMaxSize);
         if ($maxBytes > 0 && strlen($cleanBinary) > $maxBytes) {
-            throw new FileManagerException(
-                sprintf('Edited image exceeds maximum allowed size (%s).', $profile->uploadMaxSize),
-                'errors.edited_image_too_large',
-                ['%max%' => $profile->uploadMaxSize],
-            );
+            throw new FileManagerException(sprintf('Edited image exceeds maximum allowed size (%s).', $profile->uploadMaxSize), 'errors.edited_image_too_large', ['%max%' => $profile->uploadMaxSize]);
         }
         $this->assertProfileAllowsMime($profile, $finalMime);
         $this->assertProfileImageConstraints($profile, PathNormalizer::basenameUtf8($cleanPath) ?: 'image', $finalW, $finalH);
@@ -370,17 +350,11 @@ final readonly class ImageEditorController
             );
             $optPath = is_string($opt['path'] ?? null) ? $opt['path'] : null;
             if ($opt['optimized'] !== true) {
-                throw new FileManagerException(
-                    'Image processing backend (GD or Imagick) failed to decode and sanitize the edited image.',
-                    'errors.edited_image_invalid',
-                );
+                throw new FileManagerException('Image processing backend (GD or Imagick) failed to decode and sanitize the edited image.', 'errors.edited_image_invalid');
             }
             $reencoded = file_get_contents($opt['path']);
             if (!is_string($reencoded) || $reencoded === '') {
-                throw new FileManagerException(
-                    'Image processing backend returned an empty image payload.',
-                    'errors.edited_image_invalid',
-                );
+                throw new FileManagerException('Image processing backend returned an empty image payload.', 'errors.edited_image_invalid');
             }
 
             $newInfo = @getimagesizefromstring($reencoded);
@@ -416,11 +390,7 @@ final readonly class ImageEditorController
                 fn (string $cand): bool => $this->authorizer->isPathAndAncestorsGranted($profile, FileManagerPermissions::VIEW, $cand, $volumeName),
             );
             if ($dup !== null) {
-                throw new FileManagerException(
-                    sprintf('Identical file already exists at "/%s".', $dup),
-                    'errors.duplicate_file_detected',
-                    ['%existing%' => '/' . $dup],
-                );
+                throw new FileManagerException(sprintf('Identical file already exists at "/%s".', $dup), 'errors.duplicate_file_detected', ['%existing%' => '/' . $dup]);
             }
         } finally {
             @unlink($temp);
@@ -440,31 +410,11 @@ final readonly class ImageEditorController
         $maxH = is_int($constraints['max_height'] ?? null) && $constraints['max_height'] > 0 ? $constraints['max_height'] : null;
 
         if (($minW !== null && $width < $minW) || ($minH !== null && $height < $minH)) {
-            throw new FileManagerException(
-                sprintf('Image "%s" (%dx%dpx) is smaller than the minimum required.', $name, $width, $height),
-                'errors.image_too_small',
-                [
-                    '%name%' => $name,
-                    '%width%' => $width,
-                    '%height%' => $height,
-                    '%minWidth%' => $minW ?? 0,
-                    '%minHeight%' => $minH ?? 0,
-                ],
-            );
+            throw new FileManagerException(sprintf('Image "%s" (%dx%dpx) is smaller than the minimum required.', $name, $width, $height), 'errors.image_too_small', ['%name%' => $name, '%width%' => $width, '%height%' => $height, '%minWidth%' => $minW ?? 0, '%minHeight%' => $minH ?? 0]);
         }
 
         if (($maxW !== null && $width > $maxW) || ($maxH !== null && $height > $maxH)) {
-            throw new FileManagerException(
-                sprintf('Image "%s" (%dx%dpx) exceeds maximum allowed dimensions.', $name, $width, $height),
-                'errors.image_too_large_dim',
-                [
-                    '%name%' => $name,
-                    '%width%' => $width,
-                    '%height%' => $height,
-                    '%maxWidth%' => $maxW ?? '∞',
-                    '%maxHeight%' => $maxH ?? '∞',
-                ],
-            );
+            throw new FileManagerException(sprintf('Image "%s" (%dx%dpx) exceeds maximum allowed dimensions.', $name, $width, $height), 'errors.image_too_large_dim', ['%name%' => $name, '%width%' => $width, '%height%' => $height, '%maxWidth%' => $maxW ?? '∞', '%maxHeight%' => $maxH ?? '∞']);
         }
 
         $ratioLabel = is_string($constraints['aspect_ratio'] ?? null) ? trim($constraints['aspect_ratio']) : '';
@@ -477,16 +427,7 @@ final readonly class ImageEditorController
                     ? max(0.0, min(0.5, (float) $constraints['aspect_ratio_tolerance']))
                     : 0.05;
                 if ((abs(($width / $height) - $expected) / $expected) > $tolerance) {
-                    throw new FileManagerException(
-                        sprintf('Image "%s" (%dx%dpx) does not match required aspect ratio (%s).', $name, $width, $height, $ratioLabel),
-                        'errors.image_aspect_ratio',
-                        [
-                            '%name%' => $name,
-                            '%width%' => $width,
-                            '%height%' => $height,
-                            '%expected%' => $ratioLabel,
-                        ],
-                    );
+                    throw new FileManagerException(sprintf('Image "%s" (%dx%dpx) does not match required aspect ratio (%s).', $name, $width, $height, $ratioLabel), 'errors.image_aspect_ratio', ['%name%' => $name, '%width%' => $width, '%height%' => $height, '%expected%' => $ratioLabel]);
                 }
             }
         }
@@ -528,10 +469,7 @@ final readonly class ImageEditorController
                 default => null,
             };
             if ($expectedMime === null || $expectedMime !== $mime) {
-                throw new FileManagerException(
-                    'Overwrite is only allowed when the output format matches the original JPEG, PNG, or WebP file.',
-                    'errors.overwrite_format_mismatch',
-                );
+                throw new FileManagerException('Overwrite is only allowed when the output format matches the original JPEG, PNG, or WebP file.', 'errors.overwrite_format_mismatch');
             }
             if (!$filesystem->fileExists($cleanPath)) {
                 throw new FileManagerException('Original image does not exist to overwrite.', 'errors.overwrite_missing');

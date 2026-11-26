@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
+use DateTimeInterface;
 use League\Flysystem\DirectoryListing as FlysystemDirectoryListing;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemOperator;
@@ -46,6 +47,7 @@ use LiveUX\FileManagerBundle\Usage\AssetUsageCheckerInterface;
 use LiveUX\FileManagerBundle\Usage\AssetUsageReference;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
+use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -158,7 +160,7 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
         };
 
         $usageCheckerCalls = 0;
-        $usageChecker = new class ($usageCheckerCalls) implements AssetUsageCheckerInterface {
+        $usageChecker = new class($usageCheckerCalls) implements AssetUsageCheckerInterface {
             public function __construct(private int &$calls)
             {
             }
@@ -339,7 +341,7 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
         $baseFs->write('album/b.txt', 'bbb');
 
         // Decorator that throws partway through copying `album/b.txt` into `.trash/`
-        $failingFs = new class ($baseFs) implements FilesystemOperator {
+        $failingFs = new class($baseFs) implements FilesystemOperator {
             public bool $failSecondCopy = true;
             private int $copies = 0;
 
@@ -347,26 +349,105 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
             {
             }
 
-            public function fileExists(string $location): bool { return $this->inner->fileExists($location); }
-            public function directoryExists(string $location): bool { return $this->inner->directoryExists($location); }
-            public function has(string $location): bool { return $this->inner->has($location); }
-            public function read(string $location): string { return $this->inner->read($location); }
-            public function readStream(string $location) { return $this->inner->readStream($location); }
-            public function listContents(string $location, bool $deep = self::LIST_SHALLOW): FlysystemDirectoryListing { return $this->inner->listContents($location, $deep); }
-            public function lastModified(string $location): int { return $this->inner->lastModified($location); }
-            public function fileSize(string $location): int { return $this->inner->fileSize($location); }
-            public function mimeType(string $location): string { return $this->inner->mimeType($location); }
-            public function visibility(string $location): string { return $this->inner->visibility($location); }
-            public function write(string $location, string $contents, array $config = []): void { $this->inner->write($location, $contents, $config); }
-            public function writeStream(string $location, $contents, array $config = []): void { $this->inner->writeStream($location, $contents, $config); }
-            public function setVisibility(string $location, string $visibility): void { $this->inner->setVisibility($location, $visibility); }
-            public function delete(string $location): void { $this->inner->delete($location); }
-            public function deleteDirectory(string $location): void { $this->inner->deleteDirectory($location); }
-            public function createDirectory(string $location, array $config = []): void { $this->inner->createDirectory($location, $config); }
-            public function move(string $source, string $destination, array $config = []): void { $this->inner->move($source, $destination, $config); }
-            public function publicUrl(string $path, array $config = []): string { return $path; }
-            public function temporaryUrl(string $path, \DateTimeInterface $expiresAt, array $config = []): string { return $path; }
-            public function checksum(string $path, array $config = []): string { return $this->inner->checksum($path, $config); }
+            public function fileExists(string $location): bool
+            {
+                return $this->inner->fileExists($location);
+            }
+
+            public function directoryExists(string $location): bool
+            {
+                return $this->inner->directoryExists($location);
+            }
+
+            public function has(string $location): bool
+            {
+                return $this->inner->has($location);
+            }
+
+            public function read(string $location): string
+            {
+                return $this->inner->read($location);
+            }
+
+            public function readStream(string $location)
+            {
+                return $this->inner->readStream($location);
+            }
+
+            public function listContents(string $location, bool $deep = self::LIST_SHALLOW): FlysystemDirectoryListing
+            {
+                return $this->inner->listContents($location, $deep);
+            }
+
+            public function lastModified(string $location): int
+            {
+                return $this->inner->lastModified($location);
+            }
+
+            public function fileSize(string $location): int
+            {
+                return $this->inner->fileSize($location);
+            }
+
+            public function mimeType(string $location): string
+            {
+                return $this->inner->mimeType($location);
+            }
+
+            public function visibility(string $location): string
+            {
+                return $this->inner->visibility($location);
+            }
+
+            public function write(string $location, string $contents, array $config = []): void
+            {
+                $this->inner->write($location, $contents, $config);
+            }
+
+            public function writeStream(string $location, $contents, array $config = []): void
+            {
+                $this->inner->writeStream($location, $contents, $config);
+            }
+
+            public function setVisibility(string $location, string $visibility): void
+            {
+                $this->inner->setVisibility($location, $visibility);
+            }
+
+            public function delete(string $location): void
+            {
+                $this->inner->delete($location);
+            }
+
+            public function deleteDirectory(string $location): void
+            {
+                $this->inner->deleteDirectory($location);
+            }
+
+            public function createDirectory(string $location, array $config = []): void
+            {
+                $this->inner->createDirectory($location, $config);
+            }
+
+            public function move(string $source, string $destination, array $config = []): void
+            {
+                $this->inner->move($source, $destination, $config);
+            }
+
+            public function publicUrl(string $path, array $config = []): string
+            {
+                return $path;
+            }
+
+            public function temporaryUrl(string $path, DateTimeInterface $expiresAt, array $config = []): string
+            {
+                return $path;
+            }
+
+            public function checksum(string $path, array $config = []): string
+            {
+                return $this->inner->checksum($path, $config);
+            }
 
             public function copy(string $source, string $destination, array $config = []): void
             {
@@ -383,9 +464,15 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
             'volumes' => ['s3'],
             'trash' => ['enabled' => true, 'directory' => '.trash', 'retention_days' => 30, 'max_size' => '500M'],
         ]);
-        $factory = new class ($failingFs) implements StorageFactoryInterface {
-            public function __construct(private FilesystemOperator $fs) {}
-            public function create(VolumeConfig $volume): FilesystemOperator { return $this->fs; }
+        $factory = new class($failingFs) implements StorageFactoryInterface {
+            public function __construct(private FilesystemOperator $fs)
+            {
+            }
+
+            public function create(VolumeConfig $volume): FilesystemOperator
+            {
+                return $this->fs;
+            }
         };
         $registry = new VolumeRegistry($this->makeConfigProvider([$profile], [$s3Vol]), $factory);
         $dispatcher = new EventDispatcher();
@@ -422,13 +509,36 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
         $innerFs->createDirectory('dest');
 
         $deepListCalls = 0;
-        $countingFs = new class ($innerFs, $deepListCalls) implements FilesystemOperator {
-            public function __construct(private Filesystem $inner, private int &$deepCalls) {}
-            public function fileExists(string $location): bool { return $this->inner->fileExists($location); }
-            public function directoryExists(string $location): bool { return $this->inner->directoryExists($location); }
-            public function has(string $location): bool { return $this->inner->has($location); }
-            public function read(string $location): string { return $this->inner->read($location); }
-            public function readStream(string $location) { return $this->inner->readStream($location); }
+        $countingFs = new class($innerFs, $deepListCalls) implements FilesystemOperator {
+            public function __construct(private Filesystem $inner, private int &$deepCalls)
+            {
+            }
+
+            public function fileExists(string $location): bool
+            {
+                return $this->inner->fileExists($location);
+            }
+
+            public function directoryExists(string $location): bool
+            {
+                return $this->inner->directoryExists($location);
+            }
+
+            public function has(string $location): bool
+            {
+                return $this->inner->has($location);
+            }
+
+            public function read(string $location): string
+            {
+                return $this->inner->read($location);
+            }
+
+            public function readStream(string $location)
+            {
+                return $this->inner->readStream($location);
+            }
+
             public function listContents(string $location, bool $deep = self::LIST_SHALLOW): FlysystemDirectoryListing
             {
                 if ($deep && $location === 'gallery') {
@@ -437,21 +547,81 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
 
                 return $this->inner->listContents($location, $deep);
             }
-            public function lastModified(string $location): int { return $this->inner->lastModified($location); }
-            public function fileSize(string $location): int { return $this->inner->fileSize($location); }
-            public function mimeType(string $location): string { return $this->inner->mimeType($location); }
-            public function visibility(string $location): string { return $this->inner->visibility($location); }
-            public function write(string $location, string $contents, array $config = []): void { $this->inner->write($location, $contents, $config); }
-            public function writeStream(string $location, $contents, array $config = []): void { $this->inner->writeStream($location, $contents, $config); }
-            public function setVisibility(string $location, string $visibility): void { $this->inner->setVisibility($location, $visibility); }
-            public function delete(string $location): void { $this->inner->delete($location); }
-            public function deleteDirectory(string $location): void { $this->inner->deleteDirectory($location); }
-            public function createDirectory(string $location, array $config = []): void { $this->inner->createDirectory($location, $config); }
-            public function move(string $source, string $destination, array $config = []): void { $this->inner->move($source, $destination, $config); }
-            public function copy(string $source, string $destination, array $config = []): void { $this->inner->copy($source, $destination, $config); }
-            public function publicUrl(string $path, array $config = []): string { return $path; }
-            public function temporaryUrl(string $path, \DateTimeInterface $expiresAt, array $config = []): string { return $path; }
-            public function checksum(string $path, array $config = []): string { return $this->inner->checksum($path, $config); }
+
+            public function lastModified(string $location): int
+            {
+                return $this->inner->lastModified($location);
+            }
+
+            public function fileSize(string $location): int
+            {
+                return $this->inner->fileSize($location);
+            }
+
+            public function mimeType(string $location): string
+            {
+                return $this->inner->mimeType($location);
+            }
+
+            public function visibility(string $location): string
+            {
+                return $this->inner->visibility($location);
+            }
+
+            public function write(string $location, string $contents, array $config = []): void
+            {
+                $this->inner->write($location, $contents, $config);
+            }
+
+            public function writeStream(string $location, $contents, array $config = []): void
+            {
+                $this->inner->writeStream($location, $contents, $config);
+            }
+
+            public function setVisibility(string $location, string $visibility): void
+            {
+                $this->inner->setVisibility($location, $visibility);
+            }
+
+            public function delete(string $location): void
+            {
+                $this->inner->delete($location);
+            }
+
+            public function deleteDirectory(string $location): void
+            {
+                $this->inner->deleteDirectory($location);
+            }
+
+            public function createDirectory(string $location, array $config = []): void
+            {
+                $this->inner->createDirectory($location, $config);
+            }
+
+            public function move(string $source, string $destination, array $config = []): void
+            {
+                $this->inner->move($source, $destination, $config);
+            }
+
+            public function copy(string $source, string $destination, array $config = []): void
+            {
+                $this->inner->copy($source, $destination, $config);
+            }
+
+            public function publicUrl(string $path, array $config = []): string
+            {
+                return $path;
+            }
+
+            public function temporaryUrl(string $path, DateTimeInterface $expiresAt, array $config = []): string
+            {
+                return $path;
+            }
+
+            public function checksum(string $path, array $config = []): string
+            {
+                return $this->inner->checksum($path, $config);
+            }
         };
 
         $vol = new VolumeConfig(name: 'cloud', label: 'Cloud', group: 'network', driver: 'AwsS3', driverOptions: ['bucket' => 'b']);
@@ -460,9 +630,15 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
             'storageQuota' => '10M',
             'trash' => ['enabled' => true, 'directory' => '.trash', 'retention_days' => 30, 'max_size' => '500M'],
         ]);
-        $factory = new class ($countingFs) implements StorageFactoryInterface {
-            public function __construct(private FilesystemOperator $fs) {}
-            public function create(VolumeConfig $volume): FilesystemOperator { return $this->fs; }
+        $factory = new class($countingFs) implements StorageFactoryInterface {
+            public function __construct(private FilesystemOperator $fs)
+            {
+            }
+
+            public function create(VolumeConfig $volume): FilesystemOperator
+            {
+                return $this->fs;
+            }
         };
         $registry = new VolumeRegistry($this->makeConfigProvider([$profile], [$vol]), $factory);
         $normalizer = new PathNormalizer();
@@ -603,7 +779,7 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
             $vMap[$v->name] = $v;
         }
 
-        return new class ($pMap, $vMap) implements ConfigProviderInterface {
+        return new class($pMap, $vMap) implements ConfigProviderInterface {
             /**
              * @param array<string, ProfileConfig> $pMap
              * @param array<string, VolumeConfig>  $vMap
@@ -620,7 +796,7 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
             public function getProfile(string $name): ProfileConfig
             {
                 if (!isset($this->pMap[$name])) {
-                    throw new \RuntimeException('Unknown profile ' . $name);
+                    throw new RuntimeException('Unknown profile ' . $name);
                 }
 
                 return $this->pMap[$name];
@@ -639,7 +815,7 @@ final class EighteenthPassGlobalSecurityAuditTest extends TestCase
             public function getVolume(string $name): VolumeConfig
             {
                 if (!isset($this->vMap[$name])) {
-                    throw new \RuntimeException('Unknown volume ' . $name);
+                    throw new RuntimeException('Unknown volume ' . $name);
                 }
 
                 return $this->vMap[$name];

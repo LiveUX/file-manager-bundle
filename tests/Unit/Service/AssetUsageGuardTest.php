@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Service;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
 use LiveUX\FileManagerBundle\Config\VolumeConfig;
@@ -46,7 +47,7 @@ final class AssetUsageGuardTest extends TestCase
             return;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         /** @var SplFileInfo $file */
@@ -118,7 +119,7 @@ final class AssetUsageGuardTest extends TestCase
         $registry = $this->createRegistry($provider);
         $normalizer = new PathNormalizer();
 
-        $checkerA = new class () implements AssetUsageCheckerInterface {
+        $checkerA = new class implements AssetUsageCheckerInterface {
             public function findUsages(ProfileConfig $profile, VolumeConfig $volume, string $path, bool $isFolder = false): array
             {
                 if ($isFolder && $path === 'katalog') {
@@ -132,7 +133,7 @@ final class AssetUsageGuardTest extends TestCase
             }
         };
 
-        $checkerB = new class () implements AssetUsageCheckerInterface {
+        $checkerB = new class implements AssetUsageCheckerInterface {
             public function findUsages(ProfileConfig $profile, VolumeConfig $volume, string $path, bool $isFolder = false): array
             {
                 if ($isFolder && $path === 'katalog') {
@@ -183,7 +184,7 @@ final class AssetUsageGuardTest extends TestCase
         $registry = $this->createRegistry($provider);
         $normalizer = new PathNormalizer();
 
-        $checker = new class () implements AssetUsageCheckerInterface {
+        $checker = new class implements AssetUsageCheckerInterface {
             public function findUsages(ProfileConfig $profile, VolumeConfig $volume, string $path, bool $isFolder = false): array
             {
                 if ($path === 'katalog/termos.jpg') {

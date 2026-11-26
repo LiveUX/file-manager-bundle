@@ -33,6 +33,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
+use Throwable;
 
 #[AsTwigComponent('LiveUX:FileManager:Browser', template: '@LiveUXFileManager/components/Browser.html.twig')]
 final class BrowserComponent
@@ -442,7 +443,7 @@ final class BrowserComponent
             ]);
 
             return $probe === ($base . '?profile=__p__&volume=__v__&path=__k__') ? $base : null;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }

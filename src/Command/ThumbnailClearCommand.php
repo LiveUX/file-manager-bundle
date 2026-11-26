@@ -359,6 +359,7 @@ final class ThumbnailClearCommand extends Command
 
     /**
      * @param array<string, string> $targetDirs
+     *
      * @return list<string>
      */
     private function findOverlappingDirKeys(string $dirKey, array $targetDirs): array

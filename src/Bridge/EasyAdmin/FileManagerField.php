@@ -29,9 +29,6 @@ final class FileManagerField implements FieldInterface
 {
     use FieldTrait;
 
-    /**
-     * @param TranslatableInterface|string|bool|null $label
-     */
     public static function new(string $propertyName, TranslatableInterface|string|bool|null $label = null): self
     {
         return (new self())

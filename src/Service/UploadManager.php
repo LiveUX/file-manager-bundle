@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 
 final readonly class UploadManager
 {
@@ -155,11 +156,7 @@ final readonly class UploadManager
         ?string $authorizedEffectiveDir = null,
     ): array {
         if ($totalChunks > self::MAX_CHUNKS) {
-            throw new UploadValidationException(
-                sprintf('Maximum allowed chunks (%d) exceeded.', self::MAX_CHUNKS),
-                'errors.max_chunks_exceeded',
-                ['%max%' => self::MAX_CHUNKS],
-            );
+            throw new UploadValidationException(sprintf('Maximum allowed chunks (%d) exceeded.', self::MAX_CHUNKS), 'errors.max_chunks_exceeded', ['%max%' => self::MAX_CHUNKS]);
         }
 
         if ($chunkIndex < 0 || $chunkIndex >= $totalChunks) {
@@ -174,11 +171,7 @@ final readonly class UploadManager
         $maxBytes = $this->parseByteSize($profile->uploadMaxSize);
         $chunkSize = (int) $chunkFile->getSize();
         if ($maxBytes > 0 && $chunkSize > $maxBytes) {
-            throw new UploadValidationException(
-                sprintf('Chunk exceeds maximum allowed file size (%s).', $profile->uploadMaxSize),
-                'errors.chunk_too_large',
-                ['%max%' => $profile->uploadMaxSize],
-            );
+            throw new UploadValidationException(sprintf('Chunk exceeds maximum allowed file size (%s).', $profile->uploadMaxSize), 'errors.chunk_too_large', ['%max%' => $profile->uploadMaxSize]);
         }
 
         $chunkDir = $this->resolveChunkDir($profile, $volumeName, $cleanDir, $safeId);
@@ -230,11 +223,7 @@ final readonly class UploadManager
         }
 
         if ($exceededMax) {
-            throw new UploadValidationException(
-                sprintf('Uploaded file exceeds maximum allowed size (%s).', $profile->uploadMaxSize),
-                'errors.upload_too_large',
-                ['%name%' => $clientName, '%max%' => $profile->uploadMaxSize],
-            );
+            throw new UploadValidationException(sprintf('Uploaded file exceeds maximum allowed size (%s).', $profile->uploadMaxSize), 'errors.upload_too_large', ['%name%' => $clientName, '%max%' => $profile->uploadMaxSize]);
         }
 
         if ($assembledTempPath === null) {
@@ -261,20 +250,12 @@ final readonly class UploadManager
             for ($i = 0; $i < $totalChunks; ++$i) {
                 $part = $chunkDir . DIRECTORY_SEPARATOR . sprintf('part_%05d', $i);
                 if (!is_file($part)) {
-                    throw new UploadValidationException(
-                        sprintf('Missing upload chunk %d of %d.', $i + 1, $totalChunks),
-                        'errors.chunk_missing',
-                        ['%index%' => $i + 1, '%total%' => $totalChunks],
-                    );
+                    throw new UploadValidationException(sprintf('Missing upload chunk %d of %d.', $i + 1, $totalChunks), 'errors.chunk_missing', ['%index%' => $i + 1, '%total%' => $totalChunks]);
                 }
                 clearstatcache(true, $part);
                 $cumulativeBytes += (int) filesize($part);
                 if ($maxBytes > 0 && $cumulativeBytes > $maxBytes) {
-                    throw new UploadValidationException(
-                        sprintf('Uploaded file exceeds maximum allowed size (%s).', $profile->uploadMaxSize),
-                        'errors.upload_too_large',
-                        ['%name%' => $clientName, '%max%' => $profile->uploadMaxSize],
-                    );
+                    throw new UploadValidationException(sprintf('Uploaded file exceeds maximum allowed size (%s).', $profile->uploadMaxSize), 'errors.upload_too_large', ['%name%' => $clientName, '%max%' => $profile->uploadMaxSize]);
                 }
                 $in = fopen($part, 'rb');
                 if ($in === false) {
@@ -298,7 +279,7 @@ final readonly class UploadManager
      * Acquires an exclusive lock stored outside `$chunkDir` in a private UID-scoped `0700` lock directory.
      * Lock files are never unlinked on session completion, eliminating POSIX inode-split races.
      *
-     * @return resource|null Returns `null` only when `$nonBlocking === true` and the lock is held.
+     * @return resource|null returns `null` only when `$nonBlocking === true` and the lock is held
      */
     private function acquireChunkSessionLock(string $chunkDir, bool $nonBlocking)
     {
@@ -335,6 +316,8 @@ final readonly class UploadManager
         if (!is_dir($lockDir) && !@mkdir($lockDir, 0700, true) && !is_dir($lockDir)) {
             throw new UploadValidationException('Unable to allocate chunk session lock directory.', 'errors.chunk_assemble_failed');
         }
+        clearstatcache(true, $lockDir);
+        // @phpstan-ignore if.alwaysFalse
         if (is_link($lockDir)) {
             throw new UploadValidationException('Lock directory must not be a symlink.', 'errors.chunk_assemble_failed');
         }
@@ -372,7 +355,7 @@ final readonly class UploadManager
             if ($copied === false) {
                 throw new UploadValidationException('Unable to assemble uploaded chunks.', 'errors.chunk_assemble_failed');
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             @unlink($target);
             throw $e;
         } finally {
@@ -596,7 +579,7 @@ final readonly class UploadManager
     /**
      * Persists a single chunk while the caller already holds the exclusive external session lock.
      *
-     * @return bool True when cumulative session bytes exceed `$maxBytes` (caller must purge & throw).
+     * @return bool true when cumulative session bytes exceed `$maxBytes` (caller must purge & throw)
      */
     private function persistChunkLocked(
         string $chunkDir,
@@ -663,7 +646,7 @@ final readonly class UploadManager
             if ($filesystem->fileExists($candidate)) {
                 return max(0, $filesystem->fileSize($candidate));
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return 0;
         }
 
@@ -712,7 +695,7 @@ final readonly class UploadManager
                         if ($sid !== '') {
                             return 'anon_sess:' . $sid;
                         }
-                    } catch (\Throwable) {
+                    } catch (Throwable) {
                     }
                 }
                 $ip = $req->getClientIp();
@@ -760,11 +743,7 @@ final readonly class UploadManager
         $maxBytes = $this->parseByteSize($profile->uploadMaxSize);
 
         if ($maxBytes > 0 && $size > $maxBytes) {
-            throw new UploadValidationException(
-                sprintf('File "%s" exceeds maximum allowed size (%s).', $clientName, $profile->uploadMaxSize),
-                'errors.upload_too_large',
-                ['%name%' => $clientName, '%max%' => $profile->uploadMaxSize],
-            );
+            throw new UploadValidationException(sprintf('File "%s" exceeds maximum allowed size (%s).', $clientName, $profile->uploadMaxSize), 'errors.upload_too_large', ['%name%' => $clientName, '%max%' => $profile->uploadMaxSize]);
         }
 
         $effectiveDir = $authorizedEffectiveDir ?? $this->resolveEffectiveUploadDir($profile, $cleanDir);
@@ -808,11 +787,7 @@ final readonly class UploadManager
             $mimeType = $optimized['mime'];
             $size = $optimized['size'];
             if ($maxBytes > 0 && $size > $maxBytes) {
-                throw new UploadValidationException(
-                    sprintf('File "%s" exceeds maximum allowed size (%s).', $normalizedName, $profile->uploadMaxSize),
-                    'errors.upload_too_large',
-                    ['%name%' => $normalizedName, '%max%' => $profile->uploadMaxSize],
-                );
+                throw new UploadValidationException(sprintf('File "%s" exceeds maximum allowed size (%s).', $normalizedName, $profile->uploadMaxSize), 'errors.upload_too_large', ['%name%' => $normalizedName, '%max%' => $profile->uploadMaxSize]);
             }
             $this->validateImageConstraints($profile, $localTempPath, $mimeType, $normalizedName);
         }
@@ -832,11 +807,7 @@ final readonly class UploadManager
                 $duplicateOf = $candidateDup;
                 $policy = $this->duplicateDetector->getPolicy($profile);
                 if ($policy === 'reject') {
-                    throw new UploadValidationException(
-                        sprintf('Identical file already exists at "/%s".', $duplicateOf),
-                        'errors.duplicate_file_detected',
-                        ['%existing%' => '/' . $duplicateOf],
-                    );
+                    throw new UploadValidationException(sprintf('Identical file already exists at "/%s".', $duplicateOf), 'errors.duplicate_file_detected', ['%existing%' => '/' . $duplicateOf]);
                 }
                 if ($policy === 'reuse') {
                     $existingSize = $filesystem->fileSize($duplicateOf);
@@ -969,19 +940,11 @@ final readonly class UploadManager
 
         $normalizedMime = strtolower(trim(explode(';', $mimeType, 2)[0]));
         if ($this->fileSecurityGuard->matchesMimeList($normalizedMime, $profile->uploadDeny)) {
-            throw new UploadValidationException(
-                sprintf('MIME type "%s" is denied by upload_deny policy.', $normalizedMime),
-                'errors.upload_mime_denied',
-                ['%mime%' => $normalizedMime],
-            );
+            throw new UploadValidationException(sprintf('MIME type "%s" is denied by upload_deny policy.', $normalizedMime), 'errors.upload_mime_denied', ['%mime%' => $normalizedMime]);
         }
 
         if ($profile->uploadAllow !== [] && !$this->fileSecurityGuard->matchesMimeList($normalizedMime, $profile->uploadAllow)) {
-            throw new UploadValidationException(
-                sprintf('MIME type "%s" is not in upload_allow list.', $normalizedMime),
-                'errors.upload_mime_not_allowed',
-                ['%mime%' => $normalizedMime],
-            );
+            throw new UploadValidationException(sprintf('MIME type "%s" is not in upload_allow list.', $normalizedMime), 'errors.upload_mime_not_allowed', ['%mime%' => $normalizedMime]);
         }
     }
 
@@ -1002,11 +965,7 @@ final readonly class UploadManager
         }
 
         if ($policy === 'reject') {
-            throw new UploadValidationException(
-                sprintf('File "%s" already exists (overwrite_policy: reject).', $filename),
-                'errors.upload_file_exists',
-                ['%name%' => $filename],
-            );
+            throw new UploadValidationException(sprintf('File "%s" already exists (overwrite_policy: reject).', $filename), 'errors.upload_file_exists', ['%name%' => $filename]);
         }
 
         $ext = PathNormalizer::extensionUtf8($filename);
@@ -1028,11 +987,7 @@ final readonly class UploadManager
             $fallbackName = $ext !== '' ? sprintf('%s-%s.%s', $base, $suffix, $ext) : sprintf('%s-%s', $base, $suffix);
             $candidate = $this->pathNormalizer->join($cleanDir, $fallbackName);
             if ($filesystem->fileExists($candidate) || $filesystem->directoryExists($candidate)) {
-                throw new UploadValidationException(
-                    sprintf('File "%s" already exists.', $filename),
-                    'errors.upload_file_exists',
-                    ['%name%' => $filename],
-                );
+                throw new UploadValidationException(sprintf('File "%s" already exists.', $filename), 'errors.upload_file_exists', ['%name%' => $filename]);
             }
         }
 
@@ -1088,10 +1043,7 @@ final readonly class UploadManager
 
         $info = @getimagesize($localTempPath);
         if (!is_array($info) || $info[0] <= 0 || $info[1] <= 0) {
-            throw new UploadValidationException(
-                sprintf('Unable to determine dimensions of image "%s".', $clientName),
-                'errors.edited_image_invalid',
-            );
+            throw new UploadValidationException(sprintf('Unable to determine dimensions of image "%s".', $clientName), 'errors.edited_image_invalid');
         }
 
         $width = (int) $info[0];
@@ -1117,33 +1069,13 @@ final readonly class UploadManager
         if (($minW !== null && $width < $minW) || ($minH !== null && $height < $minH)) {
             $minWLabel = (string) ($minW ?? 0);
             $minHLabel = (string) ($minH ?? 0);
-            throw new UploadValidationException(
-                sprintf('Image "%s" (%dx%dpx) is smaller than the minimum required (%sx%spx).', $clientName, $width, $height, $minWLabel, $minHLabel),
-                'errors.image_too_small',
-                [
-                    '%name%' => $clientName,
-                    '%width%' => $width,
-                    '%height%' => $height,
-                    '%minWidth%' => $minW ?? 0,
-                    '%minHeight%' => $minH ?? 0,
-                ],
-            );
+            throw new UploadValidationException(sprintf('Image "%s" (%dx%dpx) is smaller than the minimum required (%sx%spx).', $clientName, $width, $height, $minWLabel, $minHLabel), 'errors.image_too_small', ['%name%' => $clientName, '%width%' => $width, '%height%' => $height, '%minWidth%' => $minW ?? 0, '%minHeight%' => $minH ?? 0]);
         }
 
         if (($maxW !== null && $width > $maxW) || ($maxH !== null && $height > $maxH)) {
             $maxWLabel = $maxW !== null ? (string) $maxW : '∞';
             $maxHLabel = $maxH !== null ? (string) $maxH : '∞';
-            throw new UploadValidationException(
-                sprintf('Image "%s" (%dx%dpx) exceeds maximum allowed dimensions (%sx%spx).', $clientName, $width, $height, $maxWLabel, $maxHLabel),
-                'errors.image_too_large_dim',
-                [
-                    '%name%' => $clientName,
-                    '%width%' => $width,
-                    '%height%' => $height,
-                    '%maxWidth%' => $maxW ?? '∞',
-                    '%maxHeight%' => $maxH ?? '∞',
-                ],
-            );
+            throw new UploadValidationException(sprintf('Image "%s" (%dx%dpx) exceeds maximum allowed dimensions (%sx%spx).', $clientName, $width, $height, $maxWLabel, $maxHLabel), 'errors.image_too_large_dim', ['%name%' => $clientName, '%width%' => $width, '%height%' => $height, '%maxWidth%' => $maxW ?? '∞', '%maxHeight%' => $maxH ?? '∞']);
         }
     }
 
@@ -1162,16 +1094,7 @@ final readonly class UploadManager
         $actual = $width / $height;
         $delta = abs($actual - $expected) / $expected;
         if ($delta > $tolerance) {
-            throw new UploadValidationException(
-                sprintf('Image "%s" (%dx%dpx) does not match required aspect ratio (%s).', $clientName, $width, $height, $expectedRatioLabel),
-                'errors.image_aspect_ratio',
-                [
-                    '%name%' => $clientName,
-                    '%width%' => $width,
-                    '%height%' => $height,
-                    '%expected%' => $expectedRatioLabel,
-                ],
-            );
+            throw new UploadValidationException(sprintf('Image "%s" (%dx%dpx) does not match required aspect ratio (%s).', $clientName, $width, $height, $expectedRatioLabel), 'errors.image_aspect_ratio', ['%name%' => $clientName, '%width%' => $width, '%height%' => $height, '%expected%' => $expectedRatioLabel]);
         }
     }
 

@@ -6,9 +6,9 @@ namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use FilesystemIterator;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FilesystemOperator;
-use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use LiveUX\FileManagerBundle\AI\AssetEnricherInterface;
 use LiveUX\FileManagerBundle\AI\AssetEnrichmentResult;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
@@ -16,7 +16,6 @@ use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
 use LiveUX\FileManagerBundle\Config\VolumeConfig;
-use LiveUX\FileManagerBundle\Controller\ApiController;
 use LiveUX\FileManagerBundle\Controller\ThumbnailController;
 use LiveUX\FileManagerBundle\Controller\UploadController;
 use LiveUX\FileManagerBundle\Controller\ZipDownloadController;
@@ -57,7 +56,13 @@ use LiveUX\FileManagerBundle\Twig\Extension\FileManagerTwigExtension;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
+use RuntimeException;
+use SplFileInfo;
+use stdClass;
+use Stringable;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -98,11 +103,11 @@ final class ThirteenthPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -119,7 +124,7 @@ final class ThirteenthPassGlobalSecurityAuditTest extends TestCase
         $container->register(DirectoryLister::class, DirectoryLister::class);
         $container->register('app.core_voter', FileManagerVoter::class)->addTag('security.voter');
         $container->register('security.authorization_checker', AuthorizationChecker::class);
-        $container->register('app.custom_auth_decorator', \stdClass::class)
+        $container->register('app.custom_auth_decorator', stdClass::class)
             ->setDecoratedService('security.authorization_checker');
 
         $bundle = new FileManagerBundle();
@@ -355,7 +360,7 @@ final class ThirteenthPassGlobalSecurityAuditTest extends TestCase
                 $this->records = &$records;
             }
 
-            public function log($level, \Stringable|string $message, array $context = []): void
+            public function log($level, Stringable|string $message, array $context = []): void
             {
                 $this->records[] = ['level' => $level, 'message' => (string) $message, 'context' => $context];
             }
@@ -477,7 +482,7 @@ final class ThirteenthPassGlobalSecurityAuditTest extends TestCase
             if ($dir === '') {
                 ++$calls;
                 if ($calls === 1) {
-                    throw new \RuntimeException('Transient I/O error');
+                    throw new RuntimeException('Transient I/O error');
                 }
 
                 return new \League\Flysystem\DirectoryListing([new DirectoryAttributes('recovered')]);
@@ -599,9 +604,9 @@ final class ThirteenthPassGlobalSecurityAuditTest extends TestCase
     }
 
     /**
-     * @param list<string> $volumes
-     * @param list<string> $uploadDeny
-     * @param list<string> $excludePatterns
+     * @param list<string>         $volumes
+     * @param list<string>         $uploadDeny
+     * @param list<string>         $excludePatterns
      * @param array<string, mixed> $permissions
      * @param array<string, mixed> $security
      * @param array<string, mixed> $thumbnail
@@ -680,28 +685,87 @@ final class FilesystemOperatorStubForTrash extends \League\Flysystem\Filesystem
     public function __construct()
     {
         parent::__construct(new class implements \League\Flysystem\FilesystemAdapter {
-            public function fileExists(string $path): bool { return false; }
-            public function directoryExists(string $path): bool { return false; }
-            public function write(string $path, string $contents, \League\Flysystem\Config $config): void {}
-            public function writeStream(string $path, $contents, \League\Flysystem\Config $config): void {}
-            public function read(string $path): string { return ''; }
-            public function readStream(string $path) { throw new \RuntimeException('Unused'); }
-            public function delete(string $path): void {}
-            public function deleteDirectory(string $path): void {}
-            public function createDirectory(string $path, \League\Flysystem\Config $config): void {}
-            public function setVisibility(string $path, string $visibility): void {}
-            public function visibility(string $path): \League\Flysystem\FileAttributes { throw new \RuntimeException('Unused'); }
-            public function mimeType(string $path): \League\Flysystem\FileAttributes { throw new \RuntimeException('Unused'); }
-            public function lastModified(string $path): \League\Flysystem\FileAttributes { throw new \RuntimeException('Unused'); }
-            public function fileSize(string $path): \League\Flysystem\FileAttributes { throw new \RuntimeException('Unused'); }
-            public function listContents(string $path, bool $deep): iterable { return []; }
-            public function move(string $source, string $destination, \League\Flysystem\Config $config): void {}
-            public function copy(string $source, string $destination, \League\Flysystem\Config $config): void {}
+            public function fileExists(string $path): bool
+            {
+                return false;
+            }
+
+            public function directoryExists(string $path): bool
+            {
+                return false;
+            }
+
+            public function write(string $path, string $contents, \League\Flysystem\Config $config): void
+            {
+            }
+
+            public function writeStream(string $path, $contents, \League\Flysystem\Config $config): void
+            {
+            }
+
+            public function read(string $path): string
+            {
+                return '';
+            }
+
+            public function readStream(string $path)
+            {
+                throw new RuntimeException('Unused');
+            }
+
+            public function delete(string $path): void
+            {
+            }
+
+            public function deleteDirectory(string $path): void
+            {
+            }
+
+            public function createDirectory(string $path, \League\Flysystem\Config $config): void
+            {
+            }
+
+            public function setVisibility(string $path, string $visibility): void
+            {
+            }
+
+            public function visibility(string $path): \League\Flysystem\FileAttributes
+            {
+                throw new RuntimeException('Unused');
+            }
+
+            public function mimeType(string $path): \League\Flysystem\FileAttributes
+            {
+                throw new RuntimeException('Unused');
+            }
+
+            public function lastModified(string $path): \League\Flysystem\FileAttributes
+            {
+                throw new RuntimeException('Unused');
+            }
+
+            public function fileSize(string $path): \League\Flysystem\FileAttributes
+            {
+                throw new RuntimeException('Unused');
+            }
+
+            public function listContents(string $path, bool $deep): iterable
+            {
+                return [];
+            }
+
+            public function move(string $source, string $destination, \League\Flysystem\Config $config): void
+            {
+            }
+
+            public function copy(string $source, string $destination, \League\Flysystem\Config $config): void
+            {
+            }
         });
     }
 
     public function fileExists(string $location): bool
     {
-        throw new \RuntimeException('Remote fileExists() must not run when cachedFallbackMap hits.');
+        throw new RuntimeException('Remote fileExists() must not run when cachedFallbackMap hits.');
     }
 }

@@ -100,10 +100,7 @@ final readonly class FileManagerAuthorizer
         ?string $targetPath = null,
     ): void {
         if (!$this->isPathAndAncestorsGranted($profile, $attribute, $path, $volumeName, $targetPath)) {
-            throw new AccessDeniedException(
-                sprintf('Access denied for "%s".', $attribute),
-                'errors.access_denied',
-            );
+            throw new AccessDeniedException(sprintf('Access denied for "%s".', $attribute), 'errors.access_denied');
         }
     }
 
@@ -115,10 +112,7 @@ final readonly class FileManagerAuthorizer
         ?string $targetPath = null,
     ): void {
         if (!$this->isGranted($profile, $attribute, $path, $volumeName, $targetPath)) {
-            throw new AccessDeniedException(
-                sprintf('Access denied for "%s".', $attribute),
-                'errors.access_denied',
-            );
+            throw new AccessDeniedException(sprintf('Access denied for "%s".', $attribute), 'errors.access_denied');
         }
     }
 }

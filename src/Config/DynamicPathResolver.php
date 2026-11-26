@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LiveUX\FileManagerBundle\Config;
 
 use DateTimeImmutable;
+use Stringable;
 use Symfony\Bundle\SecurityBundle\Security;
 
 final readonly class DynamicPathResolver
@@ -84,7 +85,7 @@ final readonly class DynamicPathResolver
 
         if (method_exists($user, 'getId')) {
             $id = $user->getId();
-            if (is_int($id) || is_string($id) || $id instanceof \Stringable) {
+            if (is_int($id) || is_string($id) || $id instanceof Stringable) {
                 $rawId = (string) $id;
                 if ($rawId !== '') {
                     return $this->sanitizeIdentifier($rawId, 'user');

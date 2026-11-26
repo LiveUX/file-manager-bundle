@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Service;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
@@ -16,6 +17,9 @@ use LiveUX\FileManagerBundle\Service\UploadManager;
 use LiveUX\FileManagerBundle\Storage\FlysystemStorageFactory;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 final class ImageConstraintsUploadTest extends TestCase
@@ -228,11 +232,11 @@ final class ImageConstraintsUploadTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->isDir()) {
                 @rmdir($file->getPathname());

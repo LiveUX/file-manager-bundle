@@ -6,8 +6,7 @@ namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use League\Flysystem\DirectoryListing;
-use League\Flysystem\FileAttributes;
+use FilesystemIterator;
 use League\Flysystem\FilesystemOperator;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Command\ThumbnailClearCommand;
@@ -35,7 +34,6 @@ use LiveUX\FileManagerBundle\Metadata\NullMetadataStorage;
 use LiveUX\FileManagerBundle\Model\FolderItem;
 use LiveUX\FileManagerBundle\Model\TrashEntry;
 use LiveUX\FileManagerBundle\Security\CsrfRequestValidator;
-use LiveUX\FileManagerBundle\Security\FileManagerPermissions;
 use LiveUX\FileManagerBundle\Security\FileManagerSubject;
 use LiveUX\FileManagerBundle\Security\FileSecurityGuard;
 use LiveUX\FileManagerBundle\Security\PathNormalizer;
@@ -62,7 +60,10 @@ use LiveUX\FileManagerBundle\Usage\AssetUsageCheckerInterface;
 use LiveUX\FileManagerBundle\Usage\AssetUsageReference;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
+use SplFileInfo;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Command\Command;
@@ -98,11 +99,11 @@ final class TenthPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -270,7 +271,7 @@ final class TenthPassGlobalSecurityAuditTest extends TestCase
     {
         $factory = Forms::createFormFactoryBuilder()->getFormFactory();
 
-        foreach (["dir\u{FF0F}evil.png", "dir/%2e%2e/secret.png", 'foo/bar?x=1', '../evil.png'] as $badRel) {
+        foreach (["dir\u{FF0F}evil.png", 'dir/%2e%2e/secret.png', 'foo/bar?x=1', '../evil.png'] as $badRel) {
             $form = $factory->create(FileManagerPickerType::class, null, ['return_type' => 'path']);
             $form->submit($badRel);
             self::assertFalse($form->isValid(), 'Path mode must reject ' . $badRel);
@@ -708,7 +709,7 @@ final class TenthPassGlobalSecurityAuditTest extends TestCase
         self::assertFileDoesNotExist($cachedB);
 
         // AssetUsageGuardService 'overwrite' returns errors.overwrite_blocked_in_use
-        $checker = new class () implements AssetUsageCheckerInterface {
+        $checker = new class implements AssetUsageCheckerInterface {
             public function findUsages(ProfileConfig $profile, VolumeConfig $volume, string $path, bool $isFolder = false): array
             {
                 return [new AssetUsageReference('Product #1', 'Product', null, '1')];
@@ -982,7 +983,7 @@ final class TenthPassGlobalSecurityAuditTest extends TestCase
         $profileMap = is_array($profiles) ? $profiles : [$profiles->name => $profiles];
         $vol = $volume ?? new VolumeConfig('local', 'Local', 'local', 'LocalFileSystem', $this->tempDir, '/uploads');
 
-        return new class ($profileMap, $vol) implements ConfigProviderInterface {
+        return new class($profileMap, $vol) implements ConfigProviderInterface {
             /**
              * @param array<string, ProfileConfig> $profiles
              */

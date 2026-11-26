@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Util;
 
+use Collator;
+use Normalizer;
+use Throwable;
+
 /**
  * Centralized global Unicode, NFC/NFKC normalization, invisible-skeleton detection,
  * UTS-46 IDNA host canonicalization, BOM-aware text decoding, and locale-aware collation helper.
@@ -11,17 +15,17 @@ namespace LiveUX\FileManagerBundle\Util;
 final class UnicodeHelper
 {
     /**
-     * @var array<string, \Collator>
+     * @var array<string, Collator>
      */
     private static array $collators = [];
 
     public static function toNfc(string $value): string
     {
-        if ($value === '' || !class_exists(\Normalizer::class)) {
+        if ($value === '' || !class_exists(Normalizer::class)) {
             return $value;
         }
 
-        $normalized = \Normalizer::normalize($value, \Normalizer::FORM_C);
+        $normalized = Normalizer::normalize($value, Normalizer::FORM_C);
 
         return is_string($normalized) ? $normalized : $value;
     }
@@ -32,8 +36,8 @@ final class UnicodeHelper
             return '';
         }
 
-        if (class_exists(\Normalizer::class)) {
-            $normalized = \Normalizer::normalize($value, \Normalizer::FORM_KC);
+        if (class_exists(Normalizer::class)) {
+            $normalized = Normalizer::normalize($value, Normalizer::FORM_KC);
             if (is_string($normalized)) {
                 return $normalized;
             }
@@ -374,9 +378,9 @@ final class UnicodeHelper
         ) ?? $value;
     }
 
-    private static function resolveCollator(?string $locale): ?\Collator
+    private static function resolveCollator(?string $locale): ?Collator
     {
-        if (!class_exists(\Collator::class)) {
+        if (!class_exists(Collator::class)) {
             return null;
         }
 
@@ -389,8 +393,8 @@ final class UnicodeHelper
         }
 
         try {
-            $collator = new \Collator($normLocale);
-            $collator->setAttribute(\Collator::NUMERIC_COLLATION, \Collator::ON);
+            $collator = new Collator($normLocale);
+            $collator->setAttribute(Collator::NUMERIC_COLLATION, Collator::ON);
             if (count(self::$collators) >= 64) {
                 $oldestKey = array_key_first(self::$collators);
                 if ($oldestKey !== null) {
@@ -400,7 +404,7 @@ final class UnicodeHelper
             self::$collators[$normLocale] = $collator;
 
             return $collator;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }

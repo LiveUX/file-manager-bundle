@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Translation;
 
+use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -147,7 +148,7 @@ final class TranslationParityTest extends TestCase
         $enKeys = array_flip($this->flattenKeys($parsed));
 
         $templatesDir = $this->bundleRoot . DIRECTORY_SEPARATOR . 'templates';
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($templatesDir, \FilesystemIterator::SKIP_DOTS));
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($templatesDir, FilesystemIterator::SKIP_DOTS));
         $missing = [];
         $checkedKeys = 0;
 
@@ -178,7 +179,7 @@ final class TranslationParityTest extends TestCase
     public function testAllBundleSourceFilesDeclareStrictTypes(): void
     {
         $srcDir = $this->bundleRoot . DIRECTORY_SEPARATOR . 'src';
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir, \FilesystemIterator::SKIP_DOTS));
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir, FilesystemIterator::SKIP_DOTS));
         $checked = 0;
 
         /** @var SplFileInfo $file */

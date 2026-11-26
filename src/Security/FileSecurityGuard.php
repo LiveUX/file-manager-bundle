@@ -110,18 +110,12 @@ final readonly class FileSecurityGuard
 
         $rawBase = PathNormalizer::basenameUtf8($filename);
         if (strlen($rawBase) > 255) {
-            throw new UploadValidationException(
-                'Filename exceeds maximum filesystem length (255 bytes).',
-                'errors.path_too_long',
-            );
+            throw new UploadValidationException('Filename exceeds maximum filesystem length (255 bytes).', 'errors.path_too_long');
         }
         $this->assertNoUnsafeOsChars($rawBase, $strictOsChars);
 
         if (str_ends_with($rawBase, ' ') || UnicodeHelper::hasEdgeInvisibleOrTrailingDot($rawBase)) {
-            throw new UploadValidationException(
-                'Filenames ending with a dot or space are blocked.',
-                'errors.filename_trailing_dot_space',
-            );
+            throw new UploadValidationException('Filenames ending with a dot or space are blocked.', 'errors.filename_trailing_dot_space');
         }
 
         $nfcBase = UnicodeHelper::toNfc(UnicodeHelper::trimSpaces($rawBase));
@@ -171,18 +165,12 @@ final readonly class FileSecurityGuard
 
         $rawBase = PathNormalizer::basenameUtf8($folderName);
         if (strlen($rawBase) > 255) {
-            throw new UploadValidationException(
-                'Folder name exceeds maximum filesystem length (255 bytes).',
-                'errors.path_too_long',
-            );
+            throw new UploadValidationException('Folder name exceeds maximum filesystem length (255 bytes).', 'errors.path_too_long');
         }
         $this->assertNoUnsafeOsChars($rawBase, $strictOsChars);
 
         if (str_ends_with($rawBase, ' ') || UnicodeHelper::hasEdgeInvisibleOrTrailingDot($rawBase)) {
-            throw new UploadValidationException(
-                'Folder names ending with a dot or space are blocked.',
-                'errors.filename_trailing_dot_space',
-            );
+            throw new UploadValidationException('Folder names ending with a dot or space are blocked.', 'errors.filename_trailing_dot_space');
         }
 
         $nfcBase = UnicodeHelper::toNfc(UnicodeHelper::trimSpaces($rawBase));
@@ -223,20 +211,12 @@ final readonly class FileSecurityGuard
             || str_starts_with($baseLower, '.ht')
             || str_starts_with($baseLower, '.env.')
         ) {
-            throw new UploadValidationException(
-                sprintf('Folder name "%s" is blocked for security reasons.', $baseLower),
-                'errors.blocked_filename',
-                ['%name%' => $baseLower],
-            );
+            throw new UploadValidationException(sprintf('Folder name "%s" is blocked for security reasons.', $baseLower), 'errors.blocked_filename', ['%name%' => $baseLower]);
         }
 
         $firstPart = strtolower(explode('.', $baseLower, 2)[0]);
         if (in_array($firstPart, self::WINDOWS_RESERVED_NAMES, true)) {
-            throw new UploadValidationException(
-                sprintf('Reserved system folder name "%s" is blocked.', $displayBase),
-                'errors.reserved_filename',
-                ['%name%' => $displayBase],
-            );
+            throw new UploadValidationException(sprintf('Reserved system folder name "%s" is blocked.', $displayBase), 'errors.reserved_filename', ['%name%' => $displayBase]);
         }
     }
 
@@ -251,36 +231,21 @@ final readonly class FileSecurityGuard
             || str_starts_with($baseLower, '.ht')
             || str_starts_with($baseLower, '.env.')
         ) {
-            throw new UploadValidationException(
-                sprintf('Filename "%s" is blocked for security reasons.', $baseLower),
-                'errors.blocked_filename',
-                ['%name%' => $baseLower],
-            );
+            throw new UploadValidationException(sprintf('Filename "%s" is blocked for security reasons.', $baseLower), 'errors.blocked_filename', ['%name%' => $baseLower]);
         }
 
         $firstPart = strtolower(explode('.', $baseLower, 2)[0]);
         if (in_array($firstPart, self::WINDOWS_RESERVED_NAMES, true)) {
-            throw new UploadValidationException(
-                sprintf('Reserved system filename "%s" is blocked.', $displayBase),
-                'errors.reserved_filename',
-                ['%name%' => $displayBase],
-            );
+            throw new UploadValidationException(sprintf('Reserved system filename "%s" is blocked.', $displayBase), 'errors.reserved_filename', ['%name%' => $displayBase]);
         }
 
         $ext = PathNormalizer::extensionUtf8($baseLower);
         if ($ext !== '' && in_array($ext, self::BLOCKED_EXTENSIONS, true)) {
-            throw new UploadValidationException(
-                sprintf('File extension ".%s" is blocked for security reasons.', $ext),
-                'errors.blocked_extension',
-                ['%ext%' => $ext],
-            );
+            throw new UploadValidationException(sprintf('File extension ".%s" is blocked for security reasons.', $ext), 'errors.blocked_extension', ['%ext%' => $ext]);
         }
 
         if (preg_match(self::getDoubleExtensionPattern(), $baseLower) === 1) {
-            throw new UploadValidationException(
-                'Double executable extensions are blocked for security reasons.',
-                'errors.double_extension',
-            );
+            throw new UploadValidationException('Double executable extensions are blocked for security reasons.', 'errors.double_extension');
         }
     }
 
@@ -309,39 +274,23 @@ final readonly class FileSecurityGuard
 
         if ($ext === 'svg') {
             if (!in_array($mime, ['image/svg+xml', 'text/xml', 'application/xml', 'text/plain'], true)) {
-                throw new UploadValidationException(
-                    sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime),
-                    'errors.extension_mime_mismatch',
-                    ['%ext%' => $ext, '%mime%' => $mime],
-                );
+                throw new UploadValidationException(sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime), 'errors.extension_mime_mismatch', ['%ext%' => $ext, '%mime%' => $mime]);
             }
 
             return;
         }
 
         if ($mime === 'image/svg+xml') {
-            throw new UploadValidationException(
-                sprintf('SVG content cannot be uploaded with ".%s" extension.', $ext),
-                'errors.extension_mime_mismatch',
-                ['%ext%' => $ext, '%mime%' => $mime],
-            );
+            throw new UploadValidationException(sprintf('SVG content cannot be uploaded with ".%s" extension.', $ext), 'errors.extension_mime_mismatch', ['%ext%' => $ext, '%mime%' => $mime]);
         }
 
         if (in_array($mime, self::BLOCKED_ACTIVE_MIMES, true)) {
-            throw new UploadValidationException(
-                sprintf('MIME type "%s" is denied by security policy.', $mime),
-                'errors.upload_mime_denied',
-                ['%mime%' => $mime],
-            );
+            throw new UploadValidationException(sprintf('MIME type "%s" is denied by security policy.', $mime), 'errors.upload_mime_denied', ['%mime%' => $mime]);
         }
 
         if ($mime === '' || $mime === 'application/octet-stream') {
             if ($mime === 'application/octet-stream' && in_array($ext, self::STRICT_BINARY_EXTENSIONS, true)) {
-                throw new UploadValidationException(
-                    sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime),
-                    'errors.extension_mime_mismatch',
-                    ['%ext%' => $ext, '%mime%' => $mime],
-                );
+                throw new UploadValidationException(sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime), 'errors.extension_mime_mismatch', ['%ext%' => $ext, '%mime%' => $mime]);
             }
 
             return;
@@ -349,11 +298,7 @@ final readonly class FileSecurityGuard
 
         if ($mime === 'text/plain') {
             if (in_array($ext, self::STRICT_BINARY_EXTENSIONS, true)) {
-                throw new UploadValidationException(
-                    sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime),
-                    'errors.extension_mime_mismatch',
-                    ['%ext%' => $ext, '%mime%' => $mime],
-                );
+                throw new UploadValidationException(sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime), 'errors.extension_mime_mismatch', ['%ext%' => $ext, '%mime%' => $mime]);
             }
 
             return;
@@ -365,19 +310,11 @@ final readonly class FileSecurityGuard
         }
 
         if (in_array($ext, self::STRICT_BINARY_EXTENSIONS, true) && ($expectedExts === [] || str_starts_with($mime, 'text/'))) {
-            throw new UploadValidationException(
-                sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime),
-                'errors.extension_mime_mismatch',
-                ['%ext%' => $ext, '%mime%' => $mime],
-            );
+            throw new UploadValidationException(sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime), 'errors.extension_mime_mismatch', ['%ext%' => $ext, '%mime%' => $mime]);
         }
 
         if ($expectedExts !== [] && ($ext === '' || !in_array($ext, $expectedExts, true))) {
-            throw new UploadValidationException(
-                sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime),
-                'errors.extension_mime_mismatch',
-                ['%ext%' => $ext !== '' ? $ext : '(none)', '%mime%' => $mime],
-            );
+            throw new UploadValidationException(sprintf('File extension ".%s" does not match detected content type "%s".', $ext, $mime), 'errors.extension_mime_mismatch', ['%ext%' => $ext !== '' ? $ext : '(none)', '%mime%' => $mime]);
         }
     }
 
@@ -435,10 +372,7 @@ final readonly class FileSecurityGuard
                 || ($skeletonPath !== '' && $trashSkeleton !== '' && str_starts_with($trashSkeleton, $skeletonPath . '/'))
             )
         ) {
-            throw new InvalidPathException(
-                'Cannot modify or delete an ancestor folder of the trash directory.',
-                'errors.trash_access_forbidden',
-            );
+            throw new InvalidPathException('Cannot modify or delete an ancestor folder of the trash directory.', 'errors.trash_access_forbidden');
         }
     }
 
@@ -514,18 +448,12 @@ final readonly class FileSecurityGuard
         // (TrashManager always anchors trash at the volume root, so nested `projects/trash/` is legitimate).
         $lowerPath = $isPureAscii ? strtolower($cleanPath) : mb_strtolower(UnicodeHelper::toNfc($cleanPath), 'UTF-8');
         if ($trashDir !== '' && ($lowerPath === $trashDir || str_starts_with($lowerPath, $trashDir . '/'))) {
-            throw new InvalidPathException(
-                'Direct access to the trash directory is forbidden.',
-                'errors.trash_access_forbidden',
-            );
+            throw new InvalidPathException('Direct access to the trash directory is forbidden.', 'errors.trash_access_forbidden');
         }
         if (!$isPureAscii && $trashDir !== '' && $trashSkeleton !== '') {
             $skeletonPath = $this->buildTrashComparisonPath($cleanPath);
             if ($skeletonPath !== '' && ($skeletonPath === $trashSkeleton || str_starts_with($skeletonPath, $trashSkeleton . '/'))) {
-                throw new InvalidPathException(
-                    'Direct access to the trash directory is forbidden.',
-                    'errors.trash_access_forbidden',
-                );
+                throw new InvalidPathException('Direct access to the trash directory is forbidden.', 'errors.trash_access_forbidden');
             }
         }
 
@@ -541,17 +469,11 @@ final readonly class FileSecurityGuard
     {
         if (preg_match('/^[\x21-\x7E]+$/', $segment) === 1) {
             if ($profile->ignoreDotFiles && $segment[0] === '.') {
-                throw new InvalidPathException(
-                    'Direct access to hidden dot-files or dot-folders is forbidden.',
-                    'errors.hidden_access_forbidden',
-                );
+                throw new InvalidPathException('Direct access to hidden dot-files or dot-folders is forbidden.', 'errors.hidden_access_forbidden');
             }
             foreach ($profile->excludePatterns as $pattern) {
                 if (@preg_match($pattern, $segment) !== 0) {
-                    throw new InvalidPathException(
-                        'Access to excluded path is forbidden.',
-                        'errors.excluded_access_forbidden',
-                    );
+                    throw new InvalidPathException('Access to excluded path is forbidden.', 'errors.excluded_access_forbidden');
                 }
             }
 
@@ -572,10 +494,7 @@ final readonly class FileSecurityGuard
                 || str_starts_with($skeletonSeg, '.')
             )
         ) {
-            throw new InvalidPathException(
-                'Direct access to hidden dot-files or dot-folders is forbidden.',
-                'errors.hidden_access_forbidden',
-            );
+            throw new InvalidPathException('Direct access to hidden dot-files or dot-folders is forbidden.', 'errors.hidden_access_forbidden');
         }
 
         foreach ($profile->excludePatterns as $pattern) {
@@ -583,10 +502,7 @@ final readonly class FileSecurityGuard
             $variants = array_unique([$segment, $nfcSegment, $nfkcSegment, $skeletonSeg]);
             foreach ($variants as $variant) {
                 if (@preg_match($pattern, $variant) !== 0) {
-                    throw new InvalidPathException(
-                        'Access to excluded path is forbidden.',
-                        'errors.excluded_access_forbidden',
-                    );
+                    throw new InvalidPathException('Access to excluded path is forbidden.', 'errors.excluded_access_forbidden');
                 }
             }
         }

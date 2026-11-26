@@ -17,6 +17,7 @@ use LiveUX\FileManagerBundle\Metadata\FolderMetadata;
 use LiveUX\FileManagerBundle\Metadata\FolderMetadataStorageInterface;
 use RuntimeException;
 use Symfony\Contracts\Service\ResetInterface;
+use Throwable;
 
 /**
  * Zero-ORM-mapping Doctrine DBAL metadata storage for multi-server / Docker / Kubernetes deployments.
@@ -671,13 +672,13 @@ final class DoctrineDbalMetadataStorage implements FolderMetadataStorageInterfac
             if ($this->resolveViaEntityManager) {
                 try {
                     $manager = $this->doctrineOrConnection->getManager($this->connectionName);
-                    if (method_exists($manager, 'getConnection')) {
+                    if (is_object($manager) && method_exists($manager, 'getConnection')) {
                         $emConn = $manager->getConnection();
                         if ($emConn instanceof Connection) {
                             return $emConn;
                         }
                     }
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     // Fall back to DBAL connection name lookup below.
                 }
             }
@@ -729,7 +730,7 @@ final class DoctrineDbalMetadataStorage implements FolderMetadataStorageInterfac
                             $conn->quoteIdentifier($indexName),
                             $conn->quoteIdentifier($this->tableName),
                         ));
-                    } catch (\Throwable) {
+                    } catch (Throwable) {
                     }
                 }
             } catch (TableExistsException) {

@@ -40,6 +40,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Throwable;
 use Twig\Environment;
 
 final readonly class ApiController
@@ -549,11 +550,7 @@ final readonly class ApiController
             'clearCache' => $this->handleClearCache($profile, $volumeName, $payload, $locale),
             'importUrl' => $this->handleImportUrl($profile, $volumeName, $payload, $locale),
             'abortUpload' => $this->handleAbortUpload($profile, $volumeName, $payload, $locale),
-            default => throw new FileManagerException(
-                sprintf('Unknown action "%s".', $action),
-                'errors.unknown_action',
-                ['%action%' => $action],
-            ),
+            default => throw new FileManagerException(sprintf('Unknown action "%s".', $action), 'errors.unknown_action', ['%action%' => $action]),
         };
     }
 
@@ -646,11 +643,7 @@ final readonly class ApiController
     {
         $rawPaths = is_array($p['paths'] ?? null) ? array_values(array_filter($p['paths'], 'is_string')) : [];
         if (count($rawPaths) > self::MAX_BULK_DELETE_ITEMS) {
-            throw new FileManagerException(
-                sprintf('Maximum %d items can be moved in a single request.', self::MAX_BULK_DELETE_ITEMS),
-                'errors.bulk_move_limit',
-                ['%max%' => self::MAX_BULK_DELETE_ITEMS],
-            );
+            throw new FileManagerException(sprintf('Maximum %d items can be moved in a single request.', self::MAX_BULK_DELETE_ITEMS), 'errors.bulk_move_limit', ['%max%' => self::MAX_BULK_DELETE_ITEMS]);
         }
 
         $isCopy = filter_var($p['isCopy'] ?? false, FILTER_VALIDATE_BOOL);
@@ -700,11 +693,7 @@ final readonly class ApiController
     {
         $paths = is_array($p['paths'] ?? null) ? array_values(array_filter($p['paths'], 'is_string')) : [];
         if (count($paths) > self::MAX_BULK_DELETE_ITEMS) {
-            throw new FileManagerException(
-                sprintf('Maximum %d items can be deleted in a single request.', self::MAX_BULK_DELETE_ITEMS),
-                'errors.bulk_delete_limit',
-                ['%max%' => self::MAX_BULK_DELETE_ITEMS],
-            );
+            throw new FileManagerException(sprintf('Maximum %d items can be deleted in a single request.', self::MAX_BULK_DELETE_ITEMS), 'errors.bulk_delete_limit', ['%max%' => self::MAX_BULK_DELETE_ITEMS]);
         }
 
         $resolvedVol = $this->volumeRegistry->getVolumeForProfile($profile, $vol);
@@ -744,11 +733,7 @@ final readonly class ApiController
     {
         $rawPaths = is_array($p['paths'] ?? null) ? array_values(array_filter($p['paths'], 'is_string')) : [];
         if (count($rawPaths) > self::MAX_BULK_DELETE_ITEMS) {
-            throw new FileManagerException(
-                sprintf('Maximum %d items can be deleted in a single request.', self::MAX_BULK_DELETE_ITEMS),
-                'errors.bulk_delete_limit',
-                ['%max%' => self::MAX_BULK_DELETE_ITEMS],
-            );
+            throw new FileManagerException(sprintf('Maximum %d items can be deleted in a single request.', self::MAX_BULK_DELETE_ITEMS), 'errors.bulk_delete_limit', ['%max%' => self::MAX_BULK_DELETE_ITEMS]);
         }
 
         $user = $this->security?->getUser()?->getUserIdentifier();
@@ -852,11 +837,7 @@ final readonly class ApiController
         if ($existing !== null) {
             $targetAuthPath = $this->pathNormalizer->normalize($existing->originalPath);
             if (!$this->isGranted($profile, FileManagerPermissions::VIEW, $targetAuthPath, $volume->name)) {
-                throw new FileManagerException(
-                    sprintf('Trash entry "%s" was not found.', $trashId),
-                    'errors.trash_entry_not_found',
-                    ['%id%' => $trashId],
-                );
+                throw new FileManagerException(sprintf('Trash entry "%s" was not found.', $trashId), 'errors.trash_entry_not_found', ['%id%' => $trashId]);
             }
             $this->assertGranted($profile, FileManagerPermissions::TRASH_RESTORE, $targetAuthPath, $volume->name);
         }
@@ -880,19 +861,11 @@ final readonly class ApiController
         $trashId = trim($this->requireString($p, 'trashId', ''));
         $existing = $this->trashManager->findEntry($profile, $trashId, $volume->name);
         if ($existing === null) {
-            throw new FileManagerException(
-                sprintf('Trash entry "%s" was not found.', $trashId),
-                'errors.trash_entry_not_found',
-                ['%id%' => $trashId],
-            );
+            throw new FileManagerException(sprintf('Trash entry "%s" was not found.', $trashId), 'errors.trash_entry_not_found', ['%id%' => $trashId]);
         }
         $targetAuthPath = $this->pathNormalizer->normalize($existing->originalPath);
         if (!$this->isGranted($profile, FileManagerPermissions::VIEW, $targetAuthPath, $volume->name)) {
-            throw new FileManagerException(
-                sprintf('Trash entry "%s" was not found.', $trashId),
-                'errors.trash_entry_not_found',
-                ['%id%' => $trashId],
-            );
+            throw new FileManagerException(sprintf('Trash entry "%s" was not found.', $trashId), 'errors.trash_entry_not_found', ['%id%' => $trashId]);
         }
         $this->assertGranted($profile, FileManagerPermissions::TRASH_PURGE, $targetAuthPath, $volume->name);
         $this->trashManager->deletePermanently($profile, $trashId, $volume->name, true);
@@ -925,7 +898,7 @@ final readonly class ApiController
         foreach ($this->trashManager->listTrash($profile, $volumeName, true) as $entry) {
             try {
                 $cleanOrig = $this->pathNormalizer->normalize($entry->originalPath);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 continue;
             }
             if (
@@ -1303,10 +1276,7 @@ final readonly class ApiController
             return (string) $val;
         }
 
-        throw new FileManagerException(
-            sprintf('Expected string parameter for "%s".', $key),
-            'errors.invalid_json',
-        );
+        throw new FileManagerException(sprintf('Expected string parameter for "%s".', $key), 'errors.invalid_json');
     }
 
     /**
@@ -1337,7 +1307,7 @@ final readonly class ApiController
             ]);
 
             return $probe === ($base . '?profile=__p__&volume=__v__&path=__k__') ? $base : null;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -1470,7 +1440,6 @@ final readonly class ApiController
         ?string $downloadBase,
         ?string $thumbBase,
     ): array {
-
         $inlineUrl = $item->publicUrl ?? ($downloadBase !== null
             ? $downloadBase . '?' . http_build_query([
                 'profile' => $profileName,

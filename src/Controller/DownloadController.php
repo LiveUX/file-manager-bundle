@@ -25,6 +25,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Throwable;
 
 final readonly class DownloadController
 {
@@ -114,7 +115,7 @@ final readonly class DownloadController
 
             try {
                 $mimeType = $filesystem->mimeType($cleanPath);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $mimeType = 'application/octet-stream';
             }
             $filename = PathNormalizer::basenameUtf8($cleanPath);

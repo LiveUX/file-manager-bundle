@@ -148,10 +148,20 @@ final class CapabilitiesPermissionTest extends TestCase
         $dispatcher = new EventDispatcher();
         $iconsDir = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'icons';
 
-        $urlGenerator = new class () implements UrlGeneratorInterface {
-            public function setContext(RequestContext $context): void {}
-            public function getContext(): RequestContext { return new RequestContext(); }
-            public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string { return '/' . $name; }
+        $urlGenerator = new class implements UrlGeneratorInterface {
+            public function setContext(RequestContext $context): void
+            {
+            }
+
+            public function getContext(): RequestContext
+            {
+                return new RequestContext();
+            }
+
+            public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
+            {
+                return '/' . $name;
+            }
         };
 
         return new BrowserComponent(

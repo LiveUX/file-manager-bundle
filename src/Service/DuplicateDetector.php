@@ -92,8 +92,8 @@ final readonly class DuplicateDetector
     private const int MAX_CANDIDATES_PER_UPLOAD = 25;
 
     /**
-     * @param list<string>             $sameSizePaths
-     * @param array<string, string>    $pathHashMemo
+     * @param list<string>                  $sameSizePaths
+     * @param array<string, string>         $pathHashMemo
      * @param (callable(string): bool)|null $visibilityFilter
      */
     private function matchCandidateHash(
@@ -133,8 +133,8 @@ final readonly class DuplicateDetector
     }
 
     /**
-     * @param array<int, list<string>> $sizeIndex
-     * @param array<string, string>    $pathHashMemo
+     * @param array<int, list<string>>      $sizeIndex
+     * @param array<string, string>         $pathHashMemo
      * @param (callable(string): bool)|null $visibilityFilter
      */
     public function findDuplicateInSizeIndex(

@@ -90,10 +90,7 @@ final readonly class AssetEnrichmentService
         }
 
         if ($volume->private && ($profile->ai['block_private_volumes'] ?? true) === true) {
-            throw new AccessDeniedException(
-                'AI enrichment is blocked for private storage volumes by profile security policy.',
-                'errors.ai_private_blocked',
-            );
+            throw new AccessDeniedException('AI enrichment is blocked for private storage volumes by profile security policy.', 'errors.ai_private_blocked');
         }
 
         $filesystem = $this->volumeRegistry->getFilesystem($profile, $volume->name);
@@ -190,10 +187,7 @@ final readonly class AssetEnrichmentService
             $mime = $this->detectMime($tempFile, $filename);
 
             if ($this->enricher === null || !$this->enricher->supports($mime)) {
-                throw new FileManagerException(
-                    sprintf('AI enrichment is not supported for MIME type "%s".', $mime),
-                    'errors.ai_unsupported_type',
-                );
+                throw new FileManagerException(sprintf('AI enrichment is not supported for MIME type "%s".', $mime), 'errors.ai_unsupported_type');
             }
 
             [$preparedPath, $preparedMime] = $this->downscaleTempImageIfNeeded($tempFile, $filename, $mime, $profile);

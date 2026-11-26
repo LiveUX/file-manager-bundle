@@ -7,6 +7,7 @@ namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use InvalidArgumentException;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryListing;
 use League\Flysystem\FileAttributes;
@@ -55,6 +56,7 @@ use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use ReflectionMethod;
+use stdClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -149,7 +151,7 @@ final class FifteenthPassGlobalSecurityAuditTest extends TestCase
         $profile = $this->makeProfile('default', ['local'], voterEnabled: true);
 
         // Voter denies root '' and denies 'restricted' ancestor, allows everything else
-        $voterChecker = new class () implements AuthorizationCheckerInterface {
+        $voterChecker = new class implements AuthorizationCheckerInterface {
             /** @var list<array{attr: string, path: string}> */
             public array $calls = [];
 
@@ -448,7 +450,7 @@ final class FifteenthPassGlobalSecurityAuditTest extends TestCase
     public function testGlobalMultilingualUnicodeNormalizerTranslatorAndIcuBundleDiscovery(): void
     {
         // Emoji VS16 and Japanese CJK IVS preserved on visible base chars
-        self::assertSame("❤️", UnicodeHelper::trimEdgeInvisiblesAndDots("❤️"));
+        self::assertSame('❤️', UnicodeHelper::trimEdgeInvisiblesAndDots('❤️'));
         self::assertSame("葛\u{E0100}", UnicodeHelper::trimEdgeInvisiblesAndDots("葛\u{E0100}"));
         // Standalone / trailing dots & edge invisibles still stripped (leading dots preserved for dotfile detection)
         self::assertSame('file', UnicodeHelper::trimEdgeInvisiblesAndDots("\u{200B}file..\u{200B}"));
@@ -549,7 +551,7 @@ final class FifteenthPassGlobalSecurityAuditTest extends TestCase
         );
         $memFs->method('directoryExists')->willReturn(false);
 
-        $locator = new class ($memFs) implements ContainerInterface {
+        $locator = new class($memFs) implements ContainerInterface {
             public function __construct(private readonly FilesystemOperator $fs)
             {
             }
@@ -590,7 +592,7 @@ final class FifteenthPassGlobalSecurityAuditTest extends TestCase
         // DetectExternalVotersPass detects untagged custom voter wired into Symfony AccessDecisionManager
         $container = new ContainerBuilder();
         $container->setDefinition(DirectoryLister::class, new Definition(DirectoryLister::class, [null, null, null, null, null, null, false]));
-        $container->setDefinition('app.custom_fm_voter', new Definition(\stdClass::class));
+        $container->setDefinition('app.custom_fm_voter', new Definition(stdClass::class));
         $container->setDefinition(
             AccessDecisionManagerInterface::class,
             new Definition(\Symfony\Component\Security\Core\Authorization\AccessDecisionManager::class, [[new Reference('app.custom_fm_voter')]]),
@@ -746,7 +748,7 @@ final class FifteenthPassGlobalSecurityAuditTest extends TestCase
     {
         $volumes = [$volume->name => $volume];
 
-        return new class ($profiles, $volumes) implements ConfigProviderInterface {
+        return new class($profiles, $volumes) implements ConfigProviderInterface {
             /**
              * @param array<string, ProfileConfig> $profiles
              * @param array<string, VolumeConfig>  $volumes
@@ -763,7 +765,7 @@ final class FifteenthPassGlobalSecurityAuditTest extends TestCase
             public function getProfile(string $name): ProfileConfig
             {
                 if (!isset($this->profiles[$name])) {
-                    throw new \InvalidArgumentException(sprintf('Unknown profile "%s".', $name));
+                    throw new InvalidArgumentException(sprintf('Unknown profile "%s".', $name));
                 }
 
                 return $this->profiles[$name];

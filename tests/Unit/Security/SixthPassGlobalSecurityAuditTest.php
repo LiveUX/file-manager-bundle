@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Command\DuplicatesCommand;
 use LiveUX\FileManagerBundle\Command\StorageStatsCommand;
 use LiveUX\FileManagerBundle\Command\TrashPurgeCommand;
@@ -47,8 +48,12 @@ use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
+use Normalizer;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
+use SplFileInfo;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -89,11 +94,11 @@ final class SixthPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -316,8 +321,8 @@ final class SixthPassGlobalSecurityAuditTest extends TestCase
             self::assertTrue(mb_check_encoding($cleanSlug, 'UTF-8'));
             self::assertNotSame('file.' . PathNormalizer::extensionUtf8($sample), $cleanRaw);
             self::assertNotSame('file.' . PathNormalizer::extensionUtf8($sample), $cleanSlug);
-            if (class_exists(\Normalizer::class)) {
-                self::assertTrue(\Normalizer::isNormalized($cleanRaw, \Normalizer::FORM_C));
+            if (class_exists(Normalizer::class)) {
+                self::assertTrue(Normalizer::isNormalized($cleanRaw, Normalizer::FORM_C));
             }
         }
 
@@ -646,7 +651,7 @@ final class SixthPassGlobalSecurityAuditTest extends TestCase
      */
     private function makeTokenWithRoles(array $roles): TokenInterface
     {
-        $user = new class ($roles) implements UserInterface {
+        $user = new class($roles) implements UserInterface {
             /** @param list<string> $roles */
             public function __construct(private readonly array $roles)
             {

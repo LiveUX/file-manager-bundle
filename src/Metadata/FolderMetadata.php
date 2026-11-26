@@ -13,7 +13,7 @@ use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 final readonly class FolderMetadata
 {
     /**
-     * @param list<string>                     $tags
+     * @param list<string>                   $tags
      * @param array{x: float, y: float}|null $focalPoint Normalized focal point coordinates in [0.0..1.0]
      */
     public function __construct(

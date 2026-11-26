@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
@@ -15,13 +16,11 @@ use LiveUX\FileManagerBundle\Event\ItemMovedEvent;
 use LiveUX\FileManagerBundle\Event\ItemRenamedEvent;
 use LiveUX\FileManagerBundle\EventListener\AutoInjectDialogHostSubscriber;
 use LiveUX\FileManagerBundle\EventListener\CacheInvalidationListener;
-use LiveUX\FileManagerBundle\EventListener\MetadataSyncListener;
 use LiveUX\FileManagerBundle\EventListener\ThumbnailCleanupListener;
 use LiveUX\FileManagerBundle\Exception\AccessDeniedException;
 use LiveUX\FileManagerBundle\Exception\UploadValidationException;
 use LiveUX\FileManagerBundle\Form\FileManagerPickerType;
 use LiveUX\FileManagerBundle\Metadata\FolderMetadata;
-use LiveUX\FileManagerBundle\Metadata\JsonFileMetadataStorage;
 use LiveUX\FileManagerBundle\Security\FileManagerAuthorizer;
 use LiveUX\FileManagerBundle\Security\FileManagerPermissions;
 use LiveUX\FileManagerBundle\Security\FileManagerSubject;
@@ -29,9 +28,7 @@ use LiveUX\FileManagerBundle\Security\FileManagerVoter;
 use LiveUX\FileManagerBundle\Security\FileSecurityGuard;
 use LiveUX\FileManagerBundle\Security\PathNormalizer;
 use LiveUX\FileManagerBundle\Security\SvgSanitizer;
-use LiveUX\FileManagerBundle\Service\AssetUsageGuardService;
 use LiveUX\FileManagerBundle\Service\DirectoryCacheManager;
-use LiveUX\FileManagerBundle\Service\DirectoryLister;
 use LiveUX\FileManagerBundle\Service\DuplicateDetector;
 use LiveUX\FileManagerBundle\Service\FilenameNormalizer;
 use LiveUX\FileManagerBundle\Service\RemoteUrlImporter;
@@ -46,7 +43,10 @@ use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
 use LiveUX\FileManagerBundle\Twig\Extension\FileManagerTwigExtension;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
+use SplFileInfo;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -82,11 +82,11 @@ final class EighthPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());

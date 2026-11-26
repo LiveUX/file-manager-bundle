@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Icon;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\VolumeConfig;
 use LiveUX\FileManagerBundle\Icon\IconSetRegistry;
 use PHPUnit\Framework\TestCase;
@@ -30,7 +31,7 @@ final class IconSetRegistryTest extends TestCase
             return;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         /** @var SplFileInfo $file */

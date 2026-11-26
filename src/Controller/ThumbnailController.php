@@ -27,6 +27,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Throwable;
 
 final readonly class ThumbnailController
 {
@@ -158,7 +159,7 @@ final readonly class ThumbnailController
                     if (is_int($cachedMtime) && $sourceMtime > $cachedMtime) {
                         $isStale = true;
                     }
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     // Keep cached thumbnail when source mtime is unavailable.
                 }
             }
@@ -179,7 +180,7 @@ final readonly class ThumbnailController
 
             try {
                 $sourceSize = $filesystem->fileSize($cleanPath);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $sourceSize = -1;
             }
             if ($sourceSize > self::MAX_THUMBNAIL_SOURCE_BYTES) {
@@ -233,7 +234,7 @@ final readonly class ThumbnailController
 
         try {
             $sourceSize = $filesystem->fileSize($cleanPath);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $sourceSize = -1;
         }
         if ($sourceSize > $maxSvgBytes) {
@@ -309,7 +310,7 @@ final readonly class ThumbnailController
             try {
                 $rawMime = $filesystem->mimeType($cleanPath);
                 $detectedMime = trim(explode(';', strtolower($rawMime), 2)[0]);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $detectedMime = '';
             }
         }

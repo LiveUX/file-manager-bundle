@@ -221,7 +221,7 @@ final class EnrichMetadataCommand extends Command
 
     /**
      * @param list<array{path: string, canonical: string, extension: string, size: int}> $batch
-     * @param array{enriched: int, skipped: int, errors: int}                           $stats
+     * @param array{enriched: int, skipped: int, errors: int}                            $stats
      */
     private function processEnrichBatch(
         SymfonyStyle $io,

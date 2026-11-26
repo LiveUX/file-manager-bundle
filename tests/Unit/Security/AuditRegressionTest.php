@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
+use FilesystemIterator;
 use League\Flysystem\FilesystemOperator;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
@@ -55,6 +56,10 @@ use LiveUX\FileManagerBundle\Usage\AssetUsageReference;
 use LiveUX\FileManagerBundle\Util\ByteSizeParser;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
+use Stringable;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -95,14 +100,14 @@ final class AuditRegressionTest extends TestCase
     public function testAuditLogListenerHandlesTrashRestoredAndPurgedEventsWithoutCrash(): void
     {
         $records = [];
-        $logger = new class ($records) extends AbstractLogger {
+        $logger = new class($records) extends AbstractLogger {
             /** @param list<array{level: mixed, message: string, context: array<mixed>}> $records */
             public function __construct(private array &$records)
             {
             }
 
             /** @param array<mixed> $context */
-            public function log($level, \Stringable|string $message, array $context = []): void
+            public function log($level, Stringable|string $message, array $context = []): void
             {
                 $this->records[] = ['level' => $level, 'message' => (string) $message, 'context' => $context];
             }
@@ -221,7 +226,7 @@ final class AuditRegressionTest extends TestCase
 
         // 2. Usage guard with policy=block prevents renaming an in-use asset
         $profileGuard = $this->createProfile(usageGuard: ['enabled' => true, 'policy' => 'block', 'enforce_server_side' => true]);
-        $checker = new class () implements AssetUsageCheckerInterface {
+        $checker = new class implements AssetUsageCheckerInterface {
             public function findUsages(ProfileConfig $profile, VolumeConfig $volume, string $path, bool $isFolder = false): array
             {
                 return [new AssetUsageReference('Order #99', 'Order')];
@@ -596,7 +601,7 @@ final class AuditRegressionTest extends TestCase
     }
 
     /**
-     * @param list<string> $excludePatterns
+     * @param list<string>         $excludePatterns
      * @param array<string, mixed> $security
      * @param array<string, mixed> $trash
      * @param array<string, mixed> $usageGuard
@@ -688,11 +693,11 @@ final class AuditRegressionTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->isDir()) {
                 @rmdir($file->getPathname());

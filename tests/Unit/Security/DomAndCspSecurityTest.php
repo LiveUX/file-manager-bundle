@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\Controller\DownloadController;
@@ -45,7 +46,7 @@ final class DomAndCspSecurityTest extends TestCase
             return;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         /** @var SplFileInfo $file */
@@ -62,7 +63,7 @@ final class DomAndCspSecurityTest extends TestCase
     public function testAllTwigTemplatesHaveZeroInlineEventHandlersZeroRawFilterAndSafeExternalLinks(): void
     {
         $templatesDir = $this->bundleRoot . DIRECTORY_SEPARATOR . 'templates';
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($templatesDir, \FilesystemIterator::SKIP_DOTS));
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($templatesDir, FilesystemIterator::SKIP_DOTS));
         $checked = 0;
 
         /** @var SplFileInfo $file */
@@ -166,7 +167,7 @@ final class DomAndCspSecurityTest extends TestCase
         // Minimal valid PDF header bytes so finfo detects application/pdf
         file_put_contents($this->tempDir . DIRECTORY_SEPARATOR . 'real.pdf', "%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\n");
         // HTML payload disguised with .pdf extension
-        file_put_contents($this->tempDir . DIRECTORY_SEPARATOR . 'polyglot.pdf', "<!DOCTYPE html><html><body><script>alert(1)</script></body></html>");
+        file_put_contents($this->tempDir . DIRECTORY_SEPARATOR . 'polyglot.pdf', '<!DOCTYPE html><html><body><script>alert(1)</script></body></html>');
 
         $provider = new YamlConfigProvider(
             ['theme' => 'bootstrap5', 'locale' => 'en', 'base_path' => $this->tempDir, 'url_prefix' => '/uploads'],
@@ -204,11 +205,24 @@ final class DomAndCspSecurityTest extends TestCase
 
         // 3. Same protection on ShareController
         $signer = new UriSigner('test-secret-pdf-dom-2026');
-        $fakeUrlGen = new class() implements \Symfony\Component\Routing\Generator\UrlGeneratorInterface {
+        $fakeUrlGen = new class implements \Symfony\Component\Routing\Generator\UrlGeneratorInterface {
             private \Symfony\Component\Routing\RequestContext $ctx;
-            public function __construct() { $this->ctx = new \Symfony\Component\Routing\RequestContext(); }
-            public function setContext(\Symfony\Component\Routing\RequestContext $context): void { $this->ctx = $context; }
-            public function getContext(): \Symfony\Component\Routing\RequestContext { return $this->ctx; }
+
+            public function __construct()
+            {
+                $this->ctx = new \Symfony\Component\Routing\RequestContext();
+            }
+
+            public function setContext(\Symfony\Component\Routing\RequestContext $context): void
+            {
+                $this->ctx = $context;
+            }
+
+            public function getContext(): \Symfony\Component\Routing\RequestContext
+            {
+                return $this->ctx;
+            }
+
             /** @param array<string, mixed> $parameters */
             public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
             {

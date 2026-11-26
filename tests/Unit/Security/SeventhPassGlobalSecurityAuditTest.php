@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\AI\AssetEnrichmentResult;
 use LiveUX\FileManagerBundle\Bridge\SymfonyAI\SymfonyAiAssetEnricher;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
@@ -17,7 +18,6 @@ use LiveUX\FileManagerBundle\Form\FileManagerPickerType;
 use LiveUX\FileManagerBundle\Icon\IconSetRegistry;
 use LiveUX\FileManagerBundle\Metadata\FolderMetadata;
 use LiveUX\FileManagerBundle\Metadata\JsonFileMetadataStorage;
-use LiveUX\FileManagerBundle\Metadata\NullMetadataStorage;
 use LiveUX\FileManagerBundle\Security\FileManagerAuthorizer;
 use LiveUX\FileManagerBundle\Security\FileManagerPermissions;
 use LiveUX\FileManagerBundle\Security\FileSecurityGuard;
@@ -35,7 +35,10 @@ use LiveUX\FileManagerBundle\Storage\FlysystemStorageFactory;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
+use SplFileInfo;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use ZipArchive;
@@ -61,11 +64,11 @@ final class SeventhPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -215,10 +218,10 @@ SVG;
         $fnNormalizer = new FilenameNormalizer();
 
         // Emoji + Variation Selector-16 (U+FE0F) + ZWJ or Hangul Filler (U+3164) must normalize cleanly in both slugger modes.
-        $emojiUploadOff = $fnNormalizer->normalizeForUpload("👁️‍🗨️.jpg", $profileSlugOff);
+        $emojiUploadOff = $fnNormalizer->normalizeForUpload('👁️‍🗨️.jpg', $profileSlugOff);
         (new FileSecurityGuard())->assertSafeFilename($emojiUploadOff);
         self::assertSame('🚀.jpg', $fnNormalizer->normalizeForUpload("🚀\u{3164}.jpg", $profileSlugOff));
-        self::assertSame('file.jpg', $fnNormalizer->normalizeForUpload("👁️‍🗨️.jpg", $profileSlugOn));
+        self::assertSame('file.jpg', $fnNormalizer->normalizeForUpload('👁️‍🗨️.jpg', $profileSlugOn));
         self::assertSame('file.jpg', $fnNormalizer->normalizeForUpload("🚀\u{3164}.jpg", $profileSlugOn));
 
         // Truncating a stem where byte 200 lands right after a Persian ZWNJ (U+200C) or CJK full stop (U+3002)

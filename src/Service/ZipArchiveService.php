@@ -23,6 +23,7 @@ use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 use ZipArchive;
 
 /**
@@ -131,11 +132,11 @@ final readonly class ZipArchiveService
             if (!$closedOk) {
                 throw new FileManagerException('Unable to finalize temporary ZIP archive.', 'errors.zip_create_failed');
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (!$closed) {
                 try {
                     $zip->close();
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     // Ignore secondary close errors during cleanup.
                 }
             }
@@ -200,7 +201,7 @@ final readonly class ZipArchiveService
                     throw new FileManagerException('Unable to write temporary ZIP archive.', 'errors.zip_create_failed');
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             fclose($in);
             fclose($out);
             @unlink($entryTemp);
@@ -255,11 +256,7 @@ final readonly class ZipArchiveService
                     'size' => null,
                 ];
                 if (count($entries) > $maxFiles) {
-                    throw new FileManagerException(
-                        sprintf('Maximum %d files can be zipped at once.', $maxFiles),
-                        'errors.zip_max_files',
-                        ['%max%' => $maxFiles],
-                    );
+                    throw new FileManagerException(sprintf('Maximum %d files can be zipped at once.', $maxFiles), 'errors.zip_max_files', ['%max%' => $maxFiles]);
                 }
                 continue;
             }
@@ -313,11 +310,7 @@ final readonly class ZipArchiveService
                 ];
 
                 if (count($entries) > $maxFiles) {
-                    throw new FileManagerException(
-                        sprintf('Maximum %d files can be zipped at once.', $maxFiles),
-                        'errors.zip_max_files',
-                        ['%max%' => $maxFiles],
-                    );
+                    throw new FileManagerException(sprintf('Maximum %d files can be zipped at once.', $maxFiles), 'errors.zip_max_files', ['%max%' => $maxFiles]);
                 }
             }
         }
@@ -391,11 +384,7 @@ final readonly class ZipArchiveService
         try {
             $maxFiles = max(1, (int) ($profile->zip['max_extract_files'] ?? 200));
             if ($zip->numFiles > $maxFiles) {
-                throw new FileManagerException(
-                    sprintf('Archive contains too many entries (maximum %d allowed).', $maxFiles),
-                    'errors.zip_extract_too_many',
-                    ['%max%' => $maxFiles],
-                );
+                throw new FileManagerException(sprintf('Archive contains too many entries (maximum %d allowed).', $maxFiles), 'errors.zip_extract_too_many', ['%max%' => $maxFiles]);
             }
 
             // Fail closed on volumes whose quota scan hit MAX_SCANNED_ITEMS (`capped: true`)
@@ -520,11 +509,7 @@ final readonly class ZipArchiveService
                             $finalBytes = (int) filesize($entryTemp);
                             if ($maxSingleFileBytes > 0 && $finalBytes > $maxSingleFileBytes) {
                                 $errName = PathNormalizer::basenameUtf8($destPath);
-                                throw new UploadValidationException(
-                                    sprintf('File "%s" exceeds maximum allowed size (%s).', $errName, $profile->uploadMaxSize),
-                                    'errors.upload_too_large',
-                                    ['%name%' => $errName, '%max%' => $profile->uploadMaxSize],
-                                );
+                                throw new UploadValidationException(sprintf('File "%s" exceeds maximum allowed size (%s).', $errName, $profile->uploadMaxSize), 'errors.upload_too_large', ['%name%' => $errName, '%max%' => $profile->uploadMaxSize]);
                             }
                             $cumulativeFinalBytes += $finalBytes;
                             if ($maxTotalBytes > 0 && $cumulativeFinalBytes > $maxTotalBytes) {
@@ -535,11 +520,7 @@ final readonly class ZipArchiveService
                             $cumulativeNetDelta += $netDelta;
                             if ($quotaEnabled && $maxQuotaBytes > 0 && $netDelta > 0 && ($initialUsedBytes + $cumulativeNetDelta) > $maxQuotaBytes) {
                                 $limitLabel = $profile->storageQuota ?? (string) $maxQuotaBytes;
-                                throw new UploadValidationException(
-                                    sprintf('Storage quota exceeded (limit: %s).', $limitLabel),
-                                    'errors.storage_quota_exceeded',
-                                    ['%limit%' => $limitLabel],
-                                );
+                                throw new UploadValidationException(sprintf('Storage quota exceeded (limit: %s).', $limitLabel), 'errors.storage_quota_exceeded', ['%limit%' => $limitLabel]);
                             }
 
                             $stream = fopen($entryTemp, 'rb');
@@ -600,11 +581,7 @@ final readonly class ZipArchiveService
     private function resolveExtractFileCollision(FilesystemOperator $filesystem, string $candidate, string $policy): string
     {
         if ($filesystem->directoryExists($candidate)) {
-            throw new FileManagerException(
-                sprintf('Cannot overwrite existing folder "%s" with extracted file.', $candidate),
-                'errors.destination_exists',
-                ['%name%' => PathNormalizer::basenameUtf8($candidate)],
-            );
+            throw new FileManagerException(sprintf('Cannot overwrite existing folder "%s" with extracted file.', $candidate), 'errors.destination_exists', ['%name%' => PathNormalizer::basenameUtf8($candidate)]);
         }
 
         if (!$filesystem->fileExists($candidate) || $policy === 'overwrite') {
@@ -613,11 +590,7 @@ final readonly class ZipArchiveService
 
         $filename = PathNormalizer::basenameUtf8($candidate);
         if ($policy === 'reject') {
-            throw new UploadValidationException(
-                sprintf('File "%s" already exists (overwrite_policy: reject).', $filename),
-                'errors.upload_file_exists',
-                ['%name%' => $filename],
-            );
+            throw new UploadValidationException(sprintf('File "%s" already exists (overwrite_policy: reject).', $filename), 'errors.upload_file_exists', ['%name%' => $filename]);
         }
 
         $dir = PathNormalizer::dirnameUtf8($candidate);
@@ -653,11 +626,7 @@ final readonly class ZipArchiveService
         $cursor = $dirPath;
         while ($cursor !== '') {
             if ($filesystem->fileExists($cursor)) {
-                throw new FileManagerException(
-                    sprintf('Target "%s" already exists in destination.', PathNormalizer::basenameUtf8($cursor)),
-                    'errors.target_exists',
-                    ['%name%' => PathNormalizer::basenameUtf8($cursor)],
-                );
+                throw new FileManagerException(sprintf('Target "%s" already exists in destination.', PathNormalizer::basenameUtf8($cursor)), 'errors.target_exists', ['%name%' => PathNormalizer::basenameUtf8($cursor)]);
             }
             $next = PathNormalizer::dirnameUtf8($cursor);
             if ($next === $cursor) {
@@ -768,7 +737,7 @@ final readonly class ZipArchiveService
                     throw new FileManagerException('Unable to write temporary ZIP archive.', 'errors.zip_create_failed');
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             fclose($in);
             fclose($out);
             @unlink($tempZip);
@@ -899,7 +868,7 @@ final readonly class ZipArchiveService
                     throw new FileManagerException('Unable to write temporary ZIP archive.', 'errors.zip_create_failed');
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             fclose($out);
             fclose($entryStream);
             @unlink($entryTemp);
@@ -950,19 +919,11 @@ final readonly class ZipArchiveService
         $this->fileSecurityGuard->assertMimeMatchesExtension($filename, $normalizedMime);
 
         if ($this->fileSecurityGuard->matchesMimeList($normalizedMime, $profile->uploadDeny)) {
-            throw new UploadValidationException(
-                sprintf('MIME type "%s" inside archive is denied by security policy.', $normalizedMime),
-                'errors.upload_mime_denied',
-                ['%mime%' => $normalizedMime],
-            );
+            throw new UploadValidationException(sprintf('MIME type "%s" inside archive is denied by security policy.', $normalizedMime), 'errors.upload_mime_denied', ['%mime%' => $normalizedMime]);
         }
 
         if ($profile->uploadAllow !== [] && !$this->fileSecurityGuard->matchesMimeList($normalizedMime, $profile->uploadAllow)) {
-            throw new UploadValidationException(
-                sprintf('MIME type "%s" inside archive is not allowed.', $normalizedMime),
-                'errors.upload_mime_not_allowed',
-                ['%mime%' => $normalizedMime],
-            );
+            throw new UploadValidationException(sprintf('MIME type "%s" inside archive is not allowed.', $normalizedMime), 'errors.upload_mime_not_allowed', ['%mime%' => $normalizedMime]);
         }
 
         $ext = PathNormalizer::extensionUtf8($filename);
@@ -993,18 +954,10 @@ final readonly class ZipArchiveService
             $opt = $this->imageOptimizer->optimizeIfEnabled($entryTemp, $filename, $normalizedMime, $profile);
             $normalizedMime = strtolower(trim(explode(';', $opt['mime'], 2)[0]));
             if ($this->fileSecurityGuard->matchesMimeList($normalizedMime, $profile->uploadDeny)) {
-                throw new UploadValidationException(
-                    sprintf('MIME type "%s" inside archive is denied by security policy.', $normalizedMime),
-                    'errors.upload_mime_denied',
-                    ['%mime%' => $normalizedMime],
-                );
+                throw new UploadValidationException(sprintf('MIME type "%s" inside archive is denied by security policy.', $normalizedMime), 'errors.upload_mime_denied', ['%mime%' => $normalizedMime]);
             }
             if ($profile->uploadAllow !== [] && !$this->fileSecurityGuard->matchesMimeList($normalizedMime, $profile->uploadAllow)) {
-                throw new UploadValidationException(
-                    sprintf('MIME type "%s" inside archive is not allowed.', $normalizedMime),
-                    'errors.upload_mime_not_allowed',
-                    ['%mime%' => $normalizedMime],
-                );
+                throw new UploadValidationException(sprintf('MIME type "%s" inside archive is not allowed.', $normalizedMime), 'errors.upload_mime_not_allowed', ['%mime%' => $normalizedMime]);
             }
             if ($opt['filename'] !== $filename) {
                 $this->fileSecurityGuard->assertSafeFilename($opt['filename']);
@@ -1019,11 +972,7 @@ final readonly class ZipArchiveService
             $entryHash = $this->duplicateDetector->computeFileHash($entryTemp);
             if ($entryHash !== null && isset($seenArchiveHashes[$entryHash])) {
                 $existingInZip = $seenArchiveHashes[$entryHash];
-                throw new UploadValidationException(
-                    sprintf('Identical file already exists at "/%s".', $existingInZip),
-                    'errors.duplicate_file_detected',
-                    ['%existing%' => '/' . $existingInZip],
-                );
+                throw new UploadValidationException(sprintf('Identical file already exists at "/%s".', $existingInZip), 'errors.duplicate_file_detected', ['%existing%' => '/' . $existingInZip]);
             }
             $dup = $this->duplicateDetector->findDuplicateInSizeIndex(
                 $profile,
@@ -1034,11 +983,7 @@ final readonly class ZipArchiveService
                 fn (string $cand): bool => $this->authorizer->isPathAndAncestorsGranted($profile, FileManagerPermissions::VIEW, $cand, $volumeName),
             );
             if ($dup !== null) {
-                throw new UploadValidationException(
-                    sprintf('Identical file already exists at "/%s".', $dup),
-                    'errors.duplicate_file_detected',
-                    ['%existing%' => '/' . $dup],
-                );
+                throw new UploadValidationException(sprintf('Identical file already exists at "/%s".', $dup), 'errors.duplicate_file_detected', ['%existing%' => '/' . $dup]);
             }
             if ($entryHash !== null) {
                 $seenArchiveHashes[$entryHash] = $destPath;
@@ -1072,18 +1017,10 @@ final readonly class ZipArchiveService
         $w = (int) $info[0];
         $h = (int) $info[1];
         if (($minW !== null && $w < $minW) || ($minH !== null && $h < $minH)) {
-            throw new UploadValidationException(
-                sprintf('Image "%s" (%dx%dpx) is smaller than the minimum required.', $name, $w, $h),
-                'errors.image_too_small',
-                ['%name%' => $name, '%width%' => $w, '%height%' => $h, '%minWidth%' => $minW ?? 0, '%minHeight%' => $minH ?? 0],
-            );
+            throw new UploadValidationException(sprintf('Image "%s" (%dx%dpx) is smaller than the minimum required.', $name, $w, $h), 'errors.image_too_small', ['%name%' => $name, '%width%' => $w, '%height%' => $h, '%minWidth%' => $minW ?? 0, '%minHeight%' => $minH ?? 0]);
         }
         if (($maxW !== null && $w > $maxW) || ($maxH !== null && $h > $maxH)) {
-            throw new UploadValidationException(
-                sprintf('Image "%s" (%dx%dpx) exceeds maximum allowed dimensions.', $name, $w, $h),
-                'errors.image_too_large_dim',
-                ['%name%' => $name, '%width%' => $w, '%height%' => $h, '%maxWidth%' => $maxW ?? '∞', '%maxHeight%' => $maxH ?? '∞'],
-            );
+            throw new UploadValidationException(sprintf('Image "%s" (%dx%dpx) exceeds maximum allowed dimensions.', $name, $w, $h), 'errors.image_too_large_dim', ['%name%' => $name, '%width%' => $w, '%height%' => $h, '%maxWidth%' => $maxW ?? '∞', '%maxHeight%' => $maxH ?? '∞']);
         }
         if ($ratioLabel !== '' && preg_match('/^(\d+(?:\.\d+)?)\s*[:\/]\s*(\d+(?:\.\d+)?)$/', $ratioLabel, $m) === 1) {
             $rw = (float) $m[1];
@@ -1092,11 +1029,7 @@ final readonly class ZipArchiveService
                 $expected = $rw / $rh;
                 $tol = is_numeric($constraints['aspect_ratio_tolerance'] ?? null) ? max(0.0, min(0.5, (float) $constraints['aspect_ratio_tolerance'])) : 0.05;
                 if ((abs(($w / $h) - $expected) / $expected) > $tol) {
-                    throw new UploadValidationException(
-                        sprintf('Image "%s" (%dx%dpx) does not match required aspect ratio (%s).', $name, $w, $h, $ratioLabel),
-                        'errors.image_aspect_ratio',
-                        ['%name%' => $name, '%width%' => $w, '%height%' => $h, '%expected%' => $ratioLabel],
-                    );
+                    throw new UploadValidationException(sprintf('Image "%s" (%dx%dpx) does not match required aspect ratio (%s).', $name, $w, $h, $ratioLabel), 'errors.image_aspect_ratio', ['%name%' => $name, '%width%' => $w, '%height%' => $h, '%expected%' => $ratioLabel]);
                 }
             }
         }

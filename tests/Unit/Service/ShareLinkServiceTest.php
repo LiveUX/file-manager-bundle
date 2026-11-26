@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Service;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\Controller\ShareController;
@@ -15,6 +16,9 @@ use LiveUX\FileManagerBundle\Service\ShareLinkService;
 use LiveUX\FileManagerBundle\Storage\FlysystemStorageFactory;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\UriSigner;
@@ -244,7 +248,7 @@ final class ShareLinkServiceTest extends TestCase
 
     private function createFakeUrlGenerator(): UrlGeneratorInterface
     {
-        return new class() implements UrlGeneratorInterface {
+        return new class implements UrlGeneratorInterface {
             private RequestContext $context;
 
             public function __construct()
@@ -277,11 +281,11 @@ final class ShareLinkServiceTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->isDir()) {
                 @rmdir($file->getPathname());

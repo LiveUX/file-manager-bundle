@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Service;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
 use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
@@ -15,6 +16,9 @@ use LiveUX\FileManagerBundle\Service\TrashManager;
 use LiveUX\FileManagerBundle\Storage\FlysystemStorageFactory;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 final class DirectoryListerAndTrashTest extends TestCase
@@ -36,11 +40,11 @@ final class DirectoryListerAndTrashTest extends TestCase
         if (!is_dir($this->tempDir)) {
             return;
         }
-        $it = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $it = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($it as $file) {
             if ($file->isDir()) {
                 @rmdir($file->getPathname());

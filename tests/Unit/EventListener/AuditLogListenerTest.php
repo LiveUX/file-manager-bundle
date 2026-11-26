@@ -12,6 +12,7 @@ use LiveUX\FileManagerBundle\Event\FileUploadedEvent;
 use LiveUX\FileManagerBundle\EventListener\AuditLogListener;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
+use Stringable;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -19,11 +20,11 @@ final class AuditLogListenerTest extends TestCase
 {
     public function testSilentWhenDisabledAndLogsStructuredContextWhenEnabled(): void
     {
-        $logger = new class () extends AbstractLogger {
+        $logger = new class extends AbstractLogger {
             /** @var list<array{level: mixed, message: string, context: array<string, mixed>}> */
             public array $records = [];
 
-            public function log($level, \Stringable|string $message, array $context = []): void
+            public function log($level, Stringable|string $message, array $context = []): void
             {
                 $this->records[] = ['level' => $level, 'message' => (string) $message, 'context' => $context];
             }

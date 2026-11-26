@@ -11,6 +11,7 @@ use LiveUX\FileManagerBundle\Security\FileSecurityGuard;
 use LiveUX\FileManagerBundle\Security\PathNormalizer;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use Symfony\Component\String\Slugger\AsciiSlugger;
+use Throwable;
 
 final readonly class FilenameNormalizer
 {
@@ -61,19 +62,11 @@ final readonly class FilenameNormalizer
         $this->fileSecurityGuard->assertSafeFilename($nfcNew, strictOsChars: false);
 
         if (!$allowExtChange && $currentExt === '' && $newExt !== '') {
-            throw new UploadValidationException(
-                sprintf('Adding file extension ".%s" during rename is not allowed.', $newExt),
-                'errors.extension_change_forbidden',
-                ['%from%' => '', '%to%' => $newExt],
-            );
+            throw new UploadValidationException(sprintf('Adding file extension ".%s" during rename is not allowed.', $newExt), 'errors.extension_change_forbidden', ['%from%' => '', '%to%' => $newExt]);
         }
         if (!$allowExtChange && $currentExt !== '' && $newExt !== $currentExt) {
             if ($newExt !== '') {
-                throw new UploadValidationException(
-                    sprintf('Changing file extension from ".%s" to ".%s" is not allowed.', $currentExt, $newExt),
-                    'errors.extension_change_forbidden',
-                    ['%from%' => $currentExt, '%to%' => $newExt],
-                );
+                throw new UploadValidationException(sprintf('Changing file extension from ".%s" to ".%s" is not allowed.', $currentExt, $newExt), 'errors.extension_change_forbidden', ['%from%' => $currentExt, '%to%' => $newExt]);
             }
             $newExt = $currentExt;
         }
@@ -226,7 +219,7 @@ final readonly class FilenameNormalizer
         try {
             $slugger = new AsciiSlugger($configured);
             $slug = $slugger->slug($nfc, '-')->lower()->toString();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $slugger = new AsciiSlugger('en');
             $slug = $slugger->slug($nfc, '-')->lower()->toString();
         }

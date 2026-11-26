@@ -43,11 +43,7 @@ final class ChainConfigProvider implements ConfigProviderInterface
             }
         }
 
-        throw new FileManagerException(
-            sprintf('FileManager profile "%s" was not found in any ConfigProvider.', $name),
-            'errors.profile_not_found',
-            ['%profile%' => $name],
-        );
+        throw new FileManagerException(sprintf('FileManager profile "%s" was not found in any ConfigProvider.', $name), 'errors.profile_not_found', ['%profile%' => $name]);
     }
 
     public function getProfileNames(): array
@@ -81,11 +77,7 @@ final class ChainConfigProvider implements ConfigProviderInterface
             }
         }
 
-        throw new FileManagerException(
-            sprintf('FileManager volume "%s" was not found in any ConfigProvider.', $name),
-            'errors.volume_not_found',
-            ['%volume%' => $name],
-        );
+        throw new FileManagerException(sprintf('FileManager volume "%s" was not found in any ConfigProvider.', $name), 'errors.volume_not_found', ['%volume%' => $name]);
     }
 
     public function getVolumes(): array

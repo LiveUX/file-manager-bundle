@@ -16,7 +16,9 @@ use LiveUX\FileManagerBundle\Security\FileSecurityGuard;
 use LiveUX\FileManagerBundle\Security\PathNormalizer;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Util\ByteSizeParser;
+use SplMinHeap;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Throwable;
 
 /**
  * Enforces optional per-profile storage quotas (e.g. "500M", "2G") across local & cloud volumes
@@ -65,11 +67,7 @@ final class StorageQuotaChecker
         if ($usage['capped'] || ($usage['bytes'] + max(0, $incomingBytes)) > $maxBytes) {
             $limitLabel = $profile->storageQuota ?? $this->formatBytes($maxBytes);
 
-            throw new UploadValidationException(
-                sprintf('Storage quota exceeded (limit: %s).', $limitLabel),
-                'errors.storage_quota_exceeded',
-                ['%limit%' => $limitLabel],
-            );
+            throw new UploadValidationException(sprintf('Storage quota exceeded (limit: %s).', $limitLabel), 'errors.storage_quota_exceeded', ['%limit%' => $limitLabel]);
         }
     }
 
@@ -79,7 +77,9 @@ final class StorageQuotaChecker
      * Re-entrant within the same PHP process and fail-closed if the OS lock cannot be acquired.
      *
      * @template T
+     *
      * @param callable(): T $callback
+     *
      * @return T
      */
     public function withQuotaLock(ProfileConfig $profile, ?string $volumeName, callable $callback, bool $forceLock = false): mixed
@@ -441,8 +441,8 @@ final class StorageQuotaChecker
         ];
         $folderTotals = [];
         $topFilesLimit = self::TOP_LIST_LIMIT * 16;
-        /** @var \SplMinHeap<array{bytes: int, entry: array{name: string, path: string, folder: string, bytes: int, category: string}}> $topFilesHeap */
-        $topFilesHeap = new class extends \SplMinHeap {
+        /** @var SplMinHeap<array{bytes: int, entry: array{name: string, path: string, folder: string, bytes: int, category: string}}> $topFilesHeap */
+        $topFilesHeap = new class extends SplMinHeap {
             protected function compare(mixed $value1, mixed $value2): int
             {
                 return $value2['bytes'] <=> $value1['bytes'];
@@ -572,7 +572,7 @@ final class StorageQuotaChecker
             $normalized = $this->pathNormalizer->normalize($raw);
 
             return mb_strtolower($normalized, 'UTF-8');
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return '.trash';
         }
     }

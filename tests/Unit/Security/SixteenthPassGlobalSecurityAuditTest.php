@@ -7,8 +7,7 @@ namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use League\Flysystem\DirectoryListing;
-use League\Flysystem\FilesystemOperator;
+use InvalidArgumentException;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
@@ -57,6 +56,7 @@ use LiveUX\FileManagerBundle\Twig\Components\BrowserComponent;
 use LiveUX\FileManagerBundle\Twig\Extension\FileManagerTwigExtension;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
+use stdClass;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
@@ -154,7 +154,7 @@ final class SixteenthPassGlobalSecurityAuditTest extends TestCase
         // Case 1: TraceableAccessDecisionManager decorating inner AccessDecisionManager with untagged custom voter
         $c1 = new ContainerBuilder();
         $c1->register(DirectoryLister::class, DirectoryLister::class);
-        $c1->register('app.custom_untagged_voter', \stdClass::class);
+        $c1->register('app.custom_untagged_voter', stdClass::class);
         $c1->register('debug.security.access.decision_manager.inner', AccessDecisionManager::class)
             ->setArguments([new IteratorArgument([new Reference('app.custom_untagged_voter')])]);
         $traceableDm = $c1->register('security.access.decision_manager', TraceableAccessDecisionManager::class)
@@ -167,14 +167,14 @@ final class SixteenthPassGlobalSecurityAuditTest extends TestCase
         $c2 = new ContainerBuilder();
         $c2->register(DirectoryLister::class, DirectoryLister::class);
         $c2->register('security.access.decision_manager', AccessDecisionManager::class)
-            ->setArguments([[new Definition(\stdClass::class)]]);
+            ->setArguments([[new Definition(stdClass::class)]]);
         $pass->process($c2);
         self::assertTrue($c2->getDefinition(DirectoryLister::class)->getArgument('hasExternalVoters'));
 
         // Case 3: TraceableVoter wrapping a custom voter
         $c3 = new ContainerBuilder();
         $c3->register(DirectoryLister::class, DirectoryLister::class);
-        $c3->register('app.wrapped_custom', \stdClass::class);
+        $c3->register('app.wrapped_custom', stdClass::class);
         $c3->register('debug.voter.custom', TraceableVoter::class)
             ->setArguments([new Reference('app.wrapped_custom')])
             ->addTag('security.voter');
@@ -492,7 +492,7 @@ final class SixteenthPassGlobalSecurityAuditTest extends TestCase
         self::assertStringContainsString("setFormTypeOption('mobile_mode', \$mobileMode)", $fieldSrc);
 
         // 5. BrowserComponent::isAllowed() enforces ancestor permissions
-        $denyAncestorAuth = new class () implements AuthorizationCheckerInterface {
+        $denyAncestorAuth = new class implements AuthorizationCheckerInterface {
             public function isGranted(mixed $attribute, mixed $subject = null, ?\Symfony\Component\Security\Core\Authorization\AccessDecision $accessDecision = null): bool
             {
                 if ($subject instanceof FileManagerSubject && $attribute === FileManagerPermissions::UPLOAD) {
@@ -627,7 +627,7 @@ final class SixteenthPassGlobalSecurityAuditTest extends TestCase
     {
         $volumes = array_merge([$volume->name => $volume], $extraVolumes);
 
-        return new class ($profiles, $volumes) implements ConfigProviderInterface {
+        return new class($profiles, $volumes) implements ConfigProviderInterface {
             /**
              * @param array<string, ProfileConfig> $profiles
              * @param array<string, VolumeConfig>  $volumes
@@ -644,7 +644,7 @@ final class SixteenthPassGlobalSecurityAuditTest extends TestCase
             public function getProfile(string $name): ProfileConfig
             {
                 if (!isset($this->profiles[$name])) {
-                    throw new \InvalidArgumentException(sprintf('Unknown profile "%s".', $name));
+                    throw new InvalidArgumentException(sprintf('Unknown profile "%s".', $name));
                 }
 
                 return $this->profiles[$name];
@@ -663,7 +663,7 @@ final class SixteenthPassGlobalSecurityAuditTest extends TestCase
             public function getVolume(string $name): VolumeConfig
             {
                 if (!isset($this->volumes[$name])) {
-                    throw new \InvalidArgumentException(sprintf('Unknown volume "%s".', $name));
+                    throw new InvalidArgumentException(sprintf('Unknown volume "%s".', $name));
                 }
 
                 return $this->volumes[$name];

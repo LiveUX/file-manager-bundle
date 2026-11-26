@@ -38,10 +38,7 @@ final readonly class CsrfRequestValidator
 
         if ($this->csrfTokenManager === null) {
             if ($this->failClosedWhenUnavailable) {
-                throw new AccessDeniedException(
-                    'CSRF protection is enabled on this profile, but Symfony CsrfTokenManagerInterface is unavailable.',
-                    'errors.csrf_invalid',
-                );
+                throw new AccessDeniedException('CSRF protection is enabled on this profile, but Symfony CsrfTokenManagerInterface is unavailable.', 'errors.csrf_invalid');
             }
 
             return;

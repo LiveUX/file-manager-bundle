@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Storage;
 
+use ArrayAccess;
 use Aws\S3\S3Client;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use League\Flysystem\Config;
@@ -145,7 +146,7 @@ final class FlysystemStorageFactory implements StorageFactoryInterface, ResetInt
     {
         $client->getHandlerList()->appendInit(static function (callable $handler): callable {
             return static function ($command, $request = null) use ($handler) {
-                if ($command instanceof \ArrayAccess && isset($command['ACL'])) {
+                if ($command instanceof ArrayAccess && isset($command['ACL'])) {
                     unset($command['ACL']);
                 }
 

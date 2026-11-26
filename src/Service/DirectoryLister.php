@@ -23,6 +23,7 @@ use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Contracts\Service\ResetInterface;
+use Throwable;
 
 final class DirectoryLister implements ResetInterface
 {
@@ -475,7 +476,7 @@ final class DirectoryLister implements ResetInterface
                 $volume->cacheTtl,
                 $volumeScope,
             );
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
         }
 
@@ -491,7 +492,7 @@ final class DirectoryLister implements ResetInterface
                     $volumeScope,
                 );
                 $nodes = $refreshed['data'];
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 return [];
             }
         }
@@ -523,6 +524,7 @@ final class DirectoryLister implements ResetInterface
 
     /**
      * @param list<array{name: string, path: string, parent: string, canonicalPath: string, depth: int, directFileCount: ?int, directItemCount: ?int, recursiveFileCount: ?int}> $rawTree
+     *
      * @return array{visibleNodes: list<array{name: string, path: string, parent: string, canonicalPath: string, depth: int, directFileCount: ?int, directItemCount: ?int, recursiveFileCount: ?int}>, counts: array<string, int>}
      */
     private function resolveVisibleTreeAndCounts(ProfileConfig $profile, VolumeConfig $volume, array $rawTree): array
@@ -567,6 +569,7 @@ final class DirectoryLister implements ResetInterface
 
     /**
      * @param list<array<string, mixed>> $rawDirEntries
+     *
      * @return array<string, int>
      */
     private function getFolderCountMapForDirectory(ProfileConfig $profile, VolumeConfig $volume, array $rawDirEntries, bool $forceRefresh = false): array
@@ -640,6 +643,7 @@ final class DirectoryLister implements ResetInterface
 
     /**
      * @param list<array{name: string, path: string, parent: string, canonicalPath: string, depth: int, directFileCount: ?int, directItemCount: ?int, recursiveFileCount: ?int}> $rawTree
+     *
      * @return list<array{name: string, path: string, parent: string, canonicalPath: string, depth: int, directFileCount: ?int, directItemCount: ?int, recursiveFileCount: ?int}>
      */
     private function filterVisibleRawNodes(ProfileConfig $profile, VolumeConfig $volume, array $rawTree): array
@@ -674,6 +678,7 @@ final class DirectoryLister implements ResetInterface
     /**
      * @param list<array{name: string, path: string, parent: string, canonicalPath: string, depth: int, directFileCount: ?int, directItemCount: ?int, recursiveFileCount: ?int}> $rawTree
      * @param list<array{name: string, path: string, parent: string, canonicalPath: string, depth: int, directFileCount: ?int, directItemCount: ?int, recursiveFileCount: ?int}> $visibleNodes
+     *
      * @return array<string, int>
      */
     private function buildFolderCountsFromRawNodes(ProfileConfig $profile, VolumeConfig $volume, array $rawTree, array $visibleNodes): array
@@ -788,6 +793,7 @@ final class DirectoryLister implements ResetInterface
 
     /**
      * @param list<array{name: string, path: string, parent: string, canonicalPath: string, depth: int, directFileCount: ?int, directItemCount: ?int, recursiveFileCount: ?int}> $visibleNodes
+     *
      * @return array<string, int>
      */
     private function extractDirectCountsFromRawNodes(ProfileConfig $profile, array $visibleNodes): array
@@ -932,7 +938,7 @@ final class DirectoryLister implements ResetInterface
                     'canonicalPath' => $this->pathNormalizer->buildCanonicalKey($volume, $itemPath, $profile->basePath),
                 ];
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($depth === 0) {
                 throw $e;
             }
@@ -1035,7 +1041,7 @@ final class DirectoryLister implements ResetInterface
                     $childDirs[] = $itemPath;
                 }
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return ['directFiles' => null, 'directFolders' => null, 'recursiveFiles' => null, 'truncated' => true];
         }
 
@@ -1113,7 +1119,7 @@ final class DirectoryLister implements ResetInterface
                     $childDirs[] = $itemPath;
                 }
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return ['directFiles' => null, 'directFolders' => null, 'recursiveFiles' => null, 'truncated' => true];
         }
 
@@ -1186,7 +1192,7 @@ final class DirectoryLister implements ResetInterface
 
     /**
      * @param array<string, array{name: string, path: string, parent: string, canonicalPath: string}> $folders
-     * @param array<string, int> $directFolders
+     * @param array<string, int>                                                                      $directFolders
      */
     private function registerCloudAncestors(ProfileConfig $profile, VolumeConfig $volume, string $folderPath, array &$folders, array &$directFolders): void
     {
@@ -1205,10 +1211,10 @@ final class DirectoryLister implements ResetInterface
     }
 
     /**
-     * @param array<string, list<array{name: string, path: string, parent: string, canonicalPath: string}>> $childrenByParent
-     * @param array<string, int> $directFiles
-     * @param array<string, int> $directFolders
-     * @param array<string, int|null> $recursiveTotals
+     * @param array<string, list<array{name: string, path: string, parent: string, canonicalPath: string}>>                                                                      $childrenByParent
+     * @param array<string, int>                                                                                                                                                 $directFiles
+     * @param array<string, int>                                                                                                                                                 $directFolders
+     * @param array<string, int|null>                                                                                                                                            $recursiveTotals
      * @param list<array{name: string, path: string, parent: string, canonicalPath: string, depth: int, directFileCount: ?int, directItemCount: ?int, recursiveFileCount: ?int}> $out
      */
     private function flattenSortedCloudNodes(
@@ -1434,7 +1440,8 @@ final class DirectoryLister implements ResetInterface
 
     /**
      * @param list<array<string, mixed>> $rawItems
-     * @param array<string, int> $folderCounts
+     * @param array<string, int>         $folderCounts
+     *
      * @return list<FolderItem|FileItem>
      */
     private function hydrateAndFilter(
@@ -1520,6 +1527,7 @@ final class DirectoryLister implements ResetInterface
 
     /**
      * @param list<FolderItem|FileItem> $items
+     *
      * @return list<FolderItem|FileItem>
      */
     private function sortItems(

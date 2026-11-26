@@ -105,11 +105,7 @@ final readonly class PathNormalizer
         }
 
         if (count($segments) > self::MAX_DEPTH) {
-            throw new InvalidPathException(
-                sprintf('Path exceeds maximum allowed depth (%d).', self::MAX_DEPTH),
-                'errors.path_max_depth',
-                ['%max%' => self::MAX_DEPTH],
-            );
+            throw new InvalidPathException(sprintf('Path exceeds maximum allowed depth (%d).', self::MAX_DEPTH), 'errors.path_max_depth', ['%max%' => self::MAX_DEPTH]);
         }
 
         return implode('/', $segments);
@@ -191,10 +187,7 @@ final readonly class PathNormalizer
     private function assertSafeSegment(string $segment): void
     {
         if (strlen($segment) > 255) {
-            throw new InvalidPathException(
-                'Path segment exceeds maximum filesystem length (255 bytes).',
-                'errors.path_too_long',
-            );
+            throw new InvalidPathException('Path segment exceeds maximum filesystem length (255 bytes).', 'errors.path_too_long');
         }
 
         $nfkc = UnicodeHelper::toNfkc($segment);
@@ -204,10 +197,7 @@ final readonly class PathNormalizer
             || str_contains($nfkc, '/')
             || str_contains($nfkc, '\\')
         ) {
-            throw new InvalidPathException(
-                'Illegal filesystem characters (e.g. ":", "<", ">", "|", "?", "*") are not allowed in paths.',
-                'errors.path_control_chars',
-            );
+            throw new InvalidPathException('Illegal filesystem characters (e.g. ":", "<", ">", "|", "?", "*") are not allowed in paths.', 'errors.path_control_chars');
         }
 
         if ($segment === '..' || str_contains($segment, '..')) {
@@ -232,11 +222,7 @@ final readonly class PathNormalizer
         $firstPart = strtolower(explode('.', UnicodeHelper::foldDotEquivalents($segment), 2)[0]);
         $skeletonFirstPart = strtolower(explode('.', $skeleton, 2)[0]);
         if (in_array($firstPart, self::WINDOWS_RESERVED, true) || in_array($skeletonFirstPart, self::WINDOWS_RESERVED, true)) {
-            throw new InvalidPathException(
-                sprintf('Reserved system name "%s" is not allowed in path.', $segment),
-                'errors.path_reserved_name',
-                ['%name%' => $segment],
-            );
+            throw new InvalidPathException(sprintf('Reserved system name "%s" is not allowed in path.', $segment), 'errors.path_reserved_name', ['%name%' => $segment]);
         }
     }
 

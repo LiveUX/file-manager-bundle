@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Service;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\Controller\DownloadController;
@@ -49,7 +50,7 @@ final class MultilingualUnicodeTest extends TestCase
             return;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         /** @var SplFileInfo $file */
@@ -214,11 +215,24 @@ final class MultilingualUnicodeTest extends TestCase
         $download = new DownloadController($provider, $registry, $normalizer);
 
         $signer = new UriSigner('i18n-share-secret-2026');
-        $urlGen = new class() implements UrlGeneratorInterface {
+        $urlGen = new class implements UrlGeneratorInterface {
             private RequestContext $ctx;
-            public function __construct() { $this->ctx = new RequestContext(); }
-            public function setContext(RequestContext $context): void { $this->ctx = $context; }
-            public function getContext(): RequestContext { return $this->ctx; }
+
+            public function __construct()
+            {
+                $this->ctx = new RequestContext();
+            }
+
+            public function setContext(RequestContext $context): void
+            {
+                $this->ctx = $context;
+            }
+
+            public function getContext(): RequestContext
+            {
+                return $this->ctx;
+            }
+
             /** @param array<string, mixed> $parameters */
             public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
             {

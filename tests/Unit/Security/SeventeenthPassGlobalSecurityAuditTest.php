@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
+use ArrayIterator;
+use DateTimeImmutable;
 use Doctrine\DBAL\DriverManager;
-use League\Flysystem\Filesystem;
-use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
@@ -23,7 +24,6 @@ use LiveUX\FileManagerBundle\EventListener\AutoInjectDialogHostSubscriber;
 use LiveUX\FileManagerBundle\EventListener\ThumbnailCleanupListener;
 use LiveUX\FileManagerBundle\Exception\FileManagerException;
 use LiveUX\FileManagerBundle\Form\FileManagerPickerType;
-use LiveUX\FileManagerBundle\Icon\IconSetRegistry;
 use LiveUX\FileManagerBundle\Metadata\FolderMetadata;
 use LiveUX\FileManagerBundle\Metadata\JsonFileMetadataStorage;
 use LiveUX\FileManagerBundle\Metadata\NullMetadataStorage;
@@ -36,7 +36,6 @@ use LiveUX\FileManagerBundle\Service\DirectoryCacheManager;
 use LiveUX\FileManagerBundle\Service\DirectoryLister;
 use LiveUX\FileManagerBundle\Service\FilenameNormalizer;
 use LiveUX\FileManagerBundle\Service\FileOperationsService;
-use LiveUX\FileManagerBundle\Service\ImageOptimizer;
 use LiveUX\FileManagerBundle\Service\MessageTranslator;
 use LiveUX\FileManagerBundle\Service\RemoteUrlImporter;
 use LiveUX\FileManagerBundle\Service\StorageQuotaChecker;
@@ -48,10 +47,13 @@ use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
-use LiveUX\FileManagerBundle\Twig\Components\BrowserComponent;
 use LiveUX\FileManagerBundle\Twig\Extension\FileManagerTwigExtension;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
+use SplFileInfo;
+use stdClass;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -113,7 +115,7 @@ final class SeventeenthPassGlobalSecurityAuditTest extends TestCase
         // 1. AuthorizationChecker wired to a custom AccessDecisionManager under a non-default service ID
         $c1 = new ContainerBuilder();
         $c1->setDefinition(DirectoryLister::class, new Definition(DirectoryLister::class));
-        $c1->setDefinition('app.custom_dm', new Definition(\stdClass::class));
+        $c1->setDefinition('app.custom_dm', new Definition(stdClass::class));
         $c1->setDefinition('security.authorization_checker', new Definition(AuthorizationChecker::class, [
             new Reference('security.token_storage'),
             new Reference('app.custom_dm'),
@@ -140,7 +142,7 @@ final class SeventeenthPassGlobalSecurityAuditTest extends TestCase
         // 4. TraceableAccessDecisionManager wrapping an untagged custom inner decision manager by Reference
         $c4 = new ContainerBuilder();
         $c4->setDefinition(DirectoryLister::class, new Definition(DirectoryLister::class));
-        $c4->setDefinition('app.inner_custom_dm', new Definition(\stdClass::class));
+        $c4->setDefinition('app.inner_custom_dm', new Definition(stdClass::class));
         $c4->setDefinition('security.access.decision_manager', new Definition(TraceableAccessDecisionManager::class, [
             new Reference('app.inner_custom_dm'),
         ]));
@@ -159,7 +161,7 @@ final class SeventeenthPassGlobalSecurityAuditTest extends TestCase
         $c5b = new ContainerBuilder();
         $c5b->setDefinition(DirectoryLister::class, new Definition(DirectoryLister::class));
         $c5b->setDefinition('security.access.decision_manager', new Definition(AccessDecisionManager::class, [
-            new Definition(\ArrayIterator::class, [[new Reference('app.hidden_voter')]]),
+            new Definition(ArrayIterator::class, [[new Reference('app.hidden_voter')]]),
         ]));
         $pass->process($c5b);
         self::assertTrue($c5b->getDefinition(DirectoryLister::class)->getArgument('hasExternalVoters'));
@@ -177,7 +179,7 @@ final class SeventeenthPassGlobalSecurityAuditTest extends TestCase
         // 7. Inline Definition wired directly as DirectoryLister::$authChecker
         $c7 = new ContainerBuilder();
         $listerDef7 = new Definition(DirectoryLister::class);
-        $listerDef7->setArgument('$authChecker', new Definition(\stdClass::class));
+        $listerDef7->setArgument('$authChecker', new Definition(stdClass::class));
         $c7->setDefinition(DirectoryLister::class, $listerDef7);
         $pass->process($c7);
         self::assertTrue($c7->getDefinition(DirectoryLister::class)->getArgument('hasExternalVoters'));
@@ -187,7 +189,7 @@ final class SeventeenthPassGlobalSecurityAuditTest extends TestCase
         $c8->setDefinition(DirectoryLister::class, new Definition(DirectoryLister::class));
         $c8->setDefinition('app.real_checker', new Definition(AuthorizationChecker::class));
         $c8->setAlias('security.authorization_checker', 'app.real_checker');
-        $c8->setDefinition('app.decorator', (new Definition(\stdClass::class))->setDecoratedService('app.real_checker'));
+        $c8->setDefinition('app.decorator', (new Definition(stdClass::class))->setDecoratedService('app.real_checker'));
         $pass->process($c8);
         self::assertTrue($c8->getDefinition(DirectoryLister::class)->getArgument('hasExternalVoters'));
     }
@@ -266,7 +268,7 @@ SVG;
 
         // 3. Shared-cacheable responses (Expires without Cache-Control:private, Surrogate-Control, CDN-Cache-Control) must skip injection on voter-protected profiles
         $sharedRes = new Response('<html><body><p>Cached</p></body></html>', 200, ['Content-Type' => 'text/html; charset=UTF-8']);
-        $sharedRes->setExpires(new \DateTimeImmutable('+1 hour'));
+        $sharedRes->setExpires(new DateTimeImmutable('+1 hour'));
         $sharedRes->headers->remove('Cache-Control');
         self::assertTrue($sharedRes->isCacheable());
         $this->dispatchResponseEvent($voterSubscriber, null, $sharedRes);
@@ -365,7 +367,7 @@ SVG;
 
         // 3. Invalid UTF-8 bytes in multiple array submission MUST fail validation instead of silently wiping to []
         $fUtf8 = $formFactory->create(FileManagerPickerType::class, ['/uploads/keep.jpg'], ['profile' => 'default', 'multiple' => true]);
-        $fUtf8->submit(["/uploads/keep.jpg", "\xFF\xFEinvalid"]);
+        $fUtf8->submit(['/uploads/keep.jpg', "\xFF\xFEinvalid"]);
         self::assertFalse($fUtf8->isValid(), 'Invalid UTF-8 array submission must fail validation instead of silently wiping gallery');
     }
 
@@ -624,10 +626,25 @@ SVG;
         });
 
         $strictCsrfTokenManager = new class implements CsrfTokenManagerInterface {
-            public function getToken(string $tokenId): CsrfToken { return new CsrfToken($tokenId, 'good-token'); }
-            public function refreshToken(string $tokenId): CsrfToken { return new CsrfToken($tokenId, 'good-token'); }
-            public function removeToken(string $tokenId): ?string { return null; }
-            public function isTokenValid(CsrfToken $token): bool { return $token->getValue() === 'good-token'; }
+            public function getToken(string $tokenId): CsrfToken
+            {
+                return new CsrfToken($tokenId, 'good-token');
+            }
+
+            public function refreshToken(string $tokenId): CsrfToken
+            {
+                return new CsrfToken($tokenId, 'good-token');
+            }
+
+            public function removeToken(string $tokenId): ?string
+            {
+                return null;
+            }
+
+            public function isTokenValid(CsrfToken $token): bool
+            {
+                return $token->getValue() === 'good-token';
+            }
         };
         $csrfValidator = new CsrfRequestValidator($strictCsrfTokenManager, true);
         $translator = new MessageTranslator();
@@ -880,11 +897,11 @@ SVG;
         if (!is_dir($dir)) {
             return;
         }
-        $it = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $it = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($it as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());

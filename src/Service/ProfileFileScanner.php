@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Service;
 
+use Generator;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
@@ -84,14 +85,14 @@ final readonly class ProfileFileScanner
      *
      * @param list<string> $allowedExtensions Defaults to FileSecurityGuard::SAFE_RASTER_EXTENSIONS
      *
-     * @return \Generator<int, array{path: string, canonical: string, extension: string, size: int}>
+     * @return Generator<int, array{path: string, canonical: string, extension: string, size: int}>
      */
     public function iterateRasterImages(
         ProfileConfig $profile,
         VolumeConfig $volume,
         string $subPath = '',
         array $allowedExtensions = FileSecurityGuard::SAFE_RASTER_EXTENSIONS,
-    ): \Generator {
+    ): Generator {
         $cleanSubPath = $this->pathNormalizer->normalize($subPath);
         $this->fileSecurityGuard->assertAccessiblePath($cleanSubPath, $profile);
         $filesystem = $this->volumeRegistry->getFilesystem($profile, $volume->name);

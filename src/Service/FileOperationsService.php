@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Service;
 
+use finfo;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemException;
@@ -31,6 +32,7 @@ use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
 use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 
 final readonly class FileOperationsService
 {
@@ -79,11 +81,7 @@ final readonly class FileOperationsService
         }
 
         if ($filesystem->fileExists($newPath)) {
-            throw new FileManagerException(
-                sprintf('Folder "%s" already exists.', $safeName),
-                'errors.folder_exists',
-                ['%name%' => $safeName],
-            );
+            throw new FileManagerException(sprintf('Folder "%s" already exists.', $safeName), 'errors.folder_exists', ['%name%' => $safeName]);
         }
 
         if ($filesystem->directoryExists($newPath)) {
@@ -91,11 +89,7 @@ final readonly class FileOperationsService
                 return $newPath;
             }
 
-            throw new FileManagerException(
-                sprintf('Folder "%s" already exists.', $safeName),
-                'errors.folder_exists',
-                ['%name%' => $safeName],
-            );
+            throw new FileManagerException(sprintf('Folder "%s" already exists.', $safeName), 'errors.folder_exists', ['%name%' => $safeName]);
         }
 
         $filesystem->createDirectory($newPath);
@@ -123,11 +117,7 @@ final readonly class FileOperationsService
         $isFolder = $filesystem->directoryExists($cleanPath);
 
         if (!$isFolder && !$filesystem->fileExists($cleanPath)) {
-            throw new FileManagerException(
-                sprintf('Item "%s" does not exist.', $cleanPath),
-                'errors.item_not_found',
-                ['%path%' => $cleanPath],
-            );
+            throw new FileManagerException(sprintf('Item "%s" does not exist.', $cleanPath), 'errors.item_not_found', ['%path%' => $cleanPath]);
         }
 
         $parentDir = PathNormalizer::dirnameUtf8($cleanPath);
@@ -143,11 +133,7 @@ final readonly class FileOperationsService
 
         $isCaseOnlyRename = $this->isSameLocalInodeRename($volume, $filesystem, $cleanPath, $newPath);
         if (!$isCaseOnlyRename && ($filesystem->fileExists($newPath) || $filesystem->directoryExists($newPath))) {
-            throw new FileManagerException(
-                sprintf('Target "%s" already exists.', $safeName),
-                'errors.target_exists',
-                ['%name%' => $safeName],
-            );
+            throw new FileManagerException(sprintf('Target "%s" already exists.', $safeName), 'errors.target_exists', ['%name%' => $safeName]);
         }
 
         $this->usageGuard?->assertAllowed($profile, $volume, $cleanPath, $isFolder, 'rename');
@@ -203,11 +189,7 @@ final readonly class FileOperationsService
         $isFolder = $filesystem->directoryExists($cleanPath);
 
         if (!$isFolder && !$filesystem->fileExists($cleanPath)) {
-            throw new FileManagerException(
-                sprintf('Item "%s" does not exist.', $cleanPath),
-                'errors.item_not_found',
-                ['%path%' => $cleanPath],
-            );
+            throw new FileManagerException(sprintf('Item "%s" does not exist.', $cleanPath), 'errors.item_not_found', ['%path%' => $cleanPath]);
         }
 
         $parentDir = PathNormalizer::dirnameUtf8($cleanPath);
@@ -218,20 +200,12 @@ final readonly class FileOperationsService
         $clonedPath = $this->pathNormalizer->join($parentDir, $safeName);
         $this->fileSecurityGuard->assertAccessiblePath($clonedPath, $profile);
         if ($filesystem->fileExists($clonedPath) || $filesystem->directoryExists($clonedPath)) {
-            throw new FileManagerException(
-                sprintf('Target "%s" already exists.', $safeName),
-                'errors.target_exists',
-                ['%name%' => $safeName],
-            );
+            throw new FileManagerException(sprintf('Target "%s" already exists.', $safeName), 'errors.target_exists', ['%name%' => $safeName]);
         }
 
         $executeClone = function () use ($profile, $filesystem, $cleanPath, $clonedPath, $safeName, $isFolder, $volume): void {
             if ($filesystem->fileExists($clonedPath) || $filesystem->directoryExists($clonedPath)) {
-                throw new FileManagerException(
-                    sprintf('Target "%s" already exists.', $safeName),
-                    'errors.target_exists',
-                    ['%name%' => $safeName],
-                );
+                throw new FileManagerException(sprintf('Target "%s" already exists.', $safeName), 'errors.target_exists', ['%name%' => $safeName]);
             }
             $this->assertTransferQuota($profile, $filesystem, $cleanPath, $isFolder, $volume->name);
 
@@ -318,11 +292,7 @@ final readonly class FileOperationsService
             $permission,
         ): void {
             if ($targetFs->fileExists($targetPath) || $targetFs->directoryExists($targetPath)) {
-                throw new FileManagerException(
-                    sprintf('Target "%s" already exists in destination.', PathNormalizer::basenameUtf8($targetPath)),
-                    'errors.target_exists',
-                    ['%name%' => PathNormalizer::basenameUtf8($targetPath)],
-                );
+                throw new FileManagerException(sprintf('Target "%s" already exists in destination.', PathNormalizer::basenameUtf8($targetPath)), 'errors.target_exists', ['%name%' => PathNormalizer::basenameUtf8($targetPath)]);
             }
             if ($isCopy || !$sameVolume) {
                 $this->assertTransferQuota($profile, $sourceFs, $cleanSource, $isFolder, $targetVolume->name);
@@ -483,7 +453,7 @@ final readonly class FileOperationsService
     }
 
     /**
-     * @param list<string>                     $tags
+     * @param list<string>                   $tags
      * @param array{x: float, y: float}|null $focalPoint
      */
     public function updateFileMetadata(
@@ -505,11 +475,7 @@ final readonly class FileOperationsService
 
         $filesystem = $this->volumeRegistry->getFilesystem($profile, $volume->name);
         if ($cleanPath === '' || !$filesystem->fileExists($cleanPath)) {
-            throw new FileManagerException(
-                sprintf('Item "%s" does not exist.', $cleanPath),
-                'errors.item_not_found',
-                ['%path%' => $cleanPath],
-            );
+            throw new FileManagerException(sprintf('Item "%s" does not exist.', $cleanPath), 'errors.item_not_found', ['%path%' => $cleanPath]);
         }
 
         $canonical = $this->pathNormalizer->buildCanonicalKey($volume, $cleanPath, $profile->basePath);
@@ -546,11 +512,7 @@ final readonly class FileOperationsService
 
         $filesystem = $this->volumeRegistry->getFilesystem($profile, $volumeName);
         if (!$filesystem->directoryExists($cleanPath)) {
-            throw new FileManagerException(
-                sprintf('Item "%s" does not exist.', $cleanPath),
-                'errors.item_not_found',
-                ['%path%' => $cleanPath],
-            );
+            throw new FileManagerException(sprintf('Item "%s" does not exist.', $cleanPath), 'errors.item_not_found', ['%path%' => $cleanPath]);
         }
     }
 
@@ -587,19 +549,11 @@ final readonly class FileOperationsService
 
         foreach ($mimesToCheck as $mime) {
             if ($this->fileSecurityGuard->matchesMimeList($mime, $profile->uploadDeny)) {
-                throw new UploadValidationException(
-                    sprintf('MIME type "%s" is denied by upload_deny policy.', $mime),
-                    'errors.upload_mime_denied',
-                    ['%mime%' => $mime],
-                );
+                throw new UploadValidationException(sprintf('MIME type "%s" is denied by upload_deny policy.', $mime), 'errors.upload_mime_denied', ['%mime%' => $mime]);
             }
 
             if ($profile->uploadAllow !== [] && !$this->fileSecurityGuard->matchesMimeList($mime, $profile->uploadAllow)) {
-                throw new UploadValidationException(
-                    sprintf('MIME type "%s" is not in upload_allow list.', $mime),
-                    'errors.upload_mime_not_allowed',
-                    ['%mime%' => $mime],
-                );
+                throw new UploadValidationException(sprintf('MIME type "%s" is not in upload_allow list.', $mime), 'errors.upload_mime_not_allowed', ['%mime%' => $mime]);
             }
         }
 
@@ -634,27 +588,27 @@ final readonly class FileOperationsService
                 } finally {
                     fclose($stream);
                 }
-                if (is_string($header) && $header !== '' && class_exists(\finfo::class)) {
-                    $finfo = new \finfo(\FILEINFO_MIME_TYPE);
+                if (is_string($header) && $header !== '' && class_exists(finfo::class)) {
+                    $finfo = new finfo(\FILEINFO_MIME_TYPE);
                     $detected = $finfo->buffer($header);
                     if (is_string($detected) && $detected !== '') {
                         return strtolower(trim(explode(';', $detected, 2)[0]));
                     }
                 }
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Fall through to adapter metadata lookup.
         }
 
         try {
             return strtolower(trim(explode(';', $filesystem->mimeType($sourcePath), 2)[0]));
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return '';
         }
     }
 
     private function isSameLocalInodeRename(
-        \LiveUX\FileManagerBundle\Config\VolumeConfig $volume,
+        VolumeConfig $volume,
         FilesystemOperator $filesystem,
         string $cleanPath,
         string $newPath,
@@ -712,19 +666,12 @@ final readonly class FileOperationsService
         foreach ($filesystem->listContents($folderPath, true) as $attr) {
             ++$count;
             if ($count > self::MAX_RECURSIVE_COPY_ITEMS) {
-                throw new FileManagerException(
-                    sprintf('Folder exceeds maximum copy item limit (%d).', self::MAX_RECURSIVE_COPY_ITEMS),
-                    'errors.copy_limit_exceeded',
-                    ['%max%' => self::MAX_RECURSIVE_COPY_ITEMS],
-                );
+                throw new FileManagerException(sprintf('Folder exceeds maximum copy item limit (%d).', self::MAX_RECURSIVE_COPY_ITEMS), 'errors.copy_limit_exceeded', ['%max%' => self::MAX_RECURSIVE_COPY_ITEMS]);
             }
 
             $cleanItem = $this->pathNormalizer->normalize($attr->path());
             if ($this->fileSecurityGuard->isPathIgnored($cleanItem, $profile)) {
-                throw new AccessDeniedException(
-                    'Folder contains protected or hidden items that cannot be deleted.',
-                    'errors.access_denied',
-                );
+                throw new AccessDeniedException('Folder contains protected or hidden items that cannot be deleted.', 'errors.access_denied');
             }
 
             $this->assertGranted($profile, FileManagerPermissions::VIEW, $cleanItem, $volume->name);
@@ -757,10 +704,10 @@ final readonly class FileOperationsService
         $filesystem->move($cleanPath, $tempPath);
         try {
             $filesystem->move($tempPath, $newPath);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             try {
                 $filesystem->move($tempPath, $cleanPath);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Best-effort rollback on case-only rename failure.
             }
             throw $e;
@@ -836,19 +783,12 @@ final readonly class FileOperationsService
         foreach ($sourceFs->listContents($sourceDir, true) as $attr) {
             ++$count;
             if ($count > self::MAX_RECURSIVE_COPY_ITEMS) {
-                throw new FileManagerException(
-                    sprintf('Folder exceeds maximum copy item limit (%d).', self::MAX_RECURSIVE_COPY_ITEMS),
-                    'errors.copy_limit_exceeded',
-                    ['%max%' => self::MAX_RECURSIVE_COPY_ITEMS],
-                );
+                throw new FileManagerException(sprintf('Folder exceeds maximum copy item limit (%d).', self::MAX_RECURSIVE_COPY_ITEMS), 'errors.copy_limit_exceeded', ['%max%' => self::MAX_RECURSIVE_COPY_ITEMS]);
             }
             $cleanItem = $this->pathNormalizer->normalize($attr->path());
             if ($this->fileSecurityGuard->isPathIgnored($cleanItem, $profile)) {
                 if ($strictMove) {
-                    throw new AccessDeniedException(
-                        'Folder contains protected or hidden items that cannot be moved.',
-                        'errors.access_denied',
-                    );
+                    throw new AccessDeniedException('Folder contains protected or hidden items that cannot be moved.', 'errors.access_denied');
                 }
                 continue;
             }
@@ -899,19 +839,12 @@ final readonly class FileOperationsService
         foreach ($sourceFs->listContents($sourceDir, true) as $attr) {
             ++$count;
             if ($count > self::MAX_RECURSIVE_COPY_ITEMS) {
-                throw new FileManagerException(
-                    sprintf('Folder exceeds maximum copy item limit (%d).', self::MAX_RECURSIVE_COPY_ITEMS),
-                    'errors.copy_limit_exceeded',
-                    ['%max%' => self::MAX_RECURSIVE_COPY_ITEMS],
-                );
+                throw new FileManagerException(sprintf('Folder exceeds maximum copy item limit (%d).', self::MAX_RECURSIVE_COPY_ITEMS), 'errors.copy_limit_exceeded', ['%max%' => self::MAX_RECURSIVE_COPY_ITEMS]);
             }
             $cleanItem = $this->pathNormalizer->normalize($attr->path());
             if ($this->fileSecurityGuard->isPathIgnored($cleanItem, $profile)) {
                 if ($strictMove) {
-                    throw new AccessDeniedException(
-                        'Folder contains protected or hidden items that cannot be moved.',
-                        'errors.access_denied',
-                    );
+                    throw new AccessDeniedException('Folder contains protected or hidden items that cannot be moved.', 'errors.access_denied');
                 }
                 continue;
             }
@@ -971,10 +904,7 @@ final readonly class FileOperationsService
         foreach ($segments as $seg) {
             $prefix = $prefix === '' ? $seg : $prefix . '/' . $seg;
             if ($filesystem->fileExists($prefix)) {
-                throw new FileManagerException(
-                    sprintf('Parent path "%s" is a file.', $prefix),
-                    'errors.invalid_target_directory',
-                );
+                throw new FileManagerException(sprintf('Parent path "%s" is a file.', $prefix), 'errors.invalid_target_directory');
             }
             if ($filesystem->directoryExists($prefix)) {
                 $nearestExisting = $prefix;
@@ -1043,11 +973,7 @@ final readonly class FileOperationsService
             if (isset($seenTargets[$targetKey])) {
                 $basename = PathNormalizer::basenameUtf8($candidate['targetPath']);
 
-                throw new FileManagerException(
-                    sprintf('Target "%s" already exists in destination.', $basename),
-                    'errors.target_exists',
-                    ['%name%' => $basename],
-                );
+                throw new FileManagerException(sprintf('Target "%s" already exists in destination.', $basename), 'errors.target_exists', ['%name%' => $basename]);
             }
             $seenTargets[$targetKey] = true;
 
@@ -1168,11 +1094,7 @@ final readonly class FileOperationsService
         string $cleanTargetDir,
     ): void {
         if ($cleanTargetDir !== '' && $targetVolume->isLocalFilesystem() && !$targetFs->directoryExists($cleanTargetDir)) {
-            throw new FileManagerException(
-                sprintf('Target folder "%s" does not exist.', $cleanTargetDir),
-                'errors.item_not_found',
-                ['%path%' => $cleanTargetDir],
-            );
+            throw new FileManagerException(sprintf('Target folder "%s" does not exist.', $cleanTargetDir), 'errors.item_not_found', ['%path%' => $cleanTargetDir]);
         }
     }
 
@@ -1217,11 +1139,7 @@ final readonly class FileOperationsService
 
         $isFolder = $sourceFs->directoryExists($cleanSource);
         if (!$isFolder && !$sourceFs->fileExists($cleanSource)) {
-            throw new FileManagerException(
-                sprintf('Source item "%s" does not exist.', $cleanSource),
-                'errors.source_not_found',
-                ['%path%' => $cleanSource],
-            );
+            throw new FileManagerException(sprintf('Source item "%s" does not exist.', $cleanSource), 'errors.source_not_found', ['%path%' => $cleanSource]);
         }
 
         $sourceBasename = PathNormalizer::basenameUtf8($cleanSource);
@@ -1253,11 +1171,7 @@ final readonly class FileOperationsService
         }
 
         if ($targetFs->fileExists($targetPath) || $targetFs->directoryExists($targetPath)) {
-            throw new FileManagerException(
-                sprintf('Target "%s" already exists in destination.', PathNormalizer::basenameUtf8($targetPath)),
-                'errors.target_exists',
-                ['%name%' => PathNormalizer::basenameUtf8($targetPath)],
-            );
+            throw new FileManagerException(sprintf('Target "%s" already exists in destination.', PathNormalizer::basenameUtf8($targetPath)), 'errors.target_exists', ['%name%' => PathNormalizer::basenameUtf8($targetPath)]);
         }
 
         if (!$isCopy) {
@@ -1299,11 +1213,7 @@ final readonly class FileOperationsService
 
         $isFolder = $filesystem->directoryExists($cleanPath);
         if (!$isFolder && !$filesystem->fileExists($cleanPath)) {
-            throw new FileManagerException(
-                sprintf('Item "%s" does not exist.', $cleanPath),
-                'errors.item_not_found',
-                ['%path%' => $cleanPath],
-            );
+            throw new FileManagerException(sprintf('Item "%s" does not exist.', $cleanPath), 'errors.item_not_found', ['%path%' => $cleanPath]);
         }
 
         ($usageGuard ?? $this->usageGuard)?->assertDeletable($profile, $volume, $cleanPath, $isFolder);
@@ -1350,7 +1260,7 @@ final readonly class FileOperationsService
         if (!$isFolder) {
             try {
                 return $sourceFs->fileSize($cleanSource);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 return 0;
             }
         }

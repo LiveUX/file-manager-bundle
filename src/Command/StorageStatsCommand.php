@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace LiveUX\FileManagerBundle\Command;
 
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
-use LiveUX\FileManagerBundle\Config\VolumeConfig;
 use LiveUX\FileManagerBundle\Exception\FileManagerException;
 use LiveUX\FileManagerBundle\Service\ProfileFileScanner;
 use LiveUX\FileManagerBundle\Service\StorageQuotaChecker;

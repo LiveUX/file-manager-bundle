@@ -22,7 +22,7 @@ interface AssetUsageCheckerInterface
      * Returns all known references to the given asset path inside the volume.
      *
      * @param string $path     Normalized path relative to the volume root (e.g., "catalog/thermos.jpg").
-     * @param bool   $isFolder True when the target being deleted is a directory.
+     * @param bool   $isFolder true when the target being deleted is a directory
      *
      * @return list<AssetUsageReference>
      */

@@ -48,6 +48,7 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
+use ZipArchive;
 
 final class SecurityAuditHardeningTest extends TestCase
 {
@@ -514,7 +515,7 @@ final class SecurityAuditHardeningTest extends TestCase
 
     public function testZipDownloadChecksPerPathVoterAndSetsSecurityHeaders(): void
     {
-        if (!class_exists(\ZipArchive::class)) {
+        if (!class_exists(ZipArchive::class)) {
             self::markTestSkipped('ext-zip is required for ZIP download test.');
         }
 
@@ -577,7 +578,7 @@ final class SecurityAuditHardeningTest extends TestCase
     }
 
     /**
-     * @param array<string, array<string, mixed>> $profiles
+     * @param array<string, array<string, mixed>>      $profiles
      * @param array<string, array<string, mixed>>|null $volumes
      */
     private function createProvider(array $profiles, ?array $volumes = null): YamlConfigProvider
@@ -665,8 +666,10 @@ final class SecurityAuditHardeningTest extends TestCase
 
     private function createFakeUrlGenerator(): UrlGeneratorInterface
     {
-        return new class () implements UrlGeneratorInterface {
-            public function setContext(RequestContext $context): void {}
+        return new class implements UrlGeneratorInterface {
+            public function setContext(RequestContext $context): void
+            {
+            }
 
             public function getContext(): RequestContext
             {

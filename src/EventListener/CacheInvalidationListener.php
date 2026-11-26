@@ -22,6 +22,7 @@ use LiveUX\FileManagerBundle\Service\DirectoryLister;
 use LiveUX\FileManagerBundle\Service\StorageQuotaChecker;
 use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Throwable;
 
 final readonly class CacheInvalidationListener implements EventSubscriberInterface
 {
@@ -116,7 +117,7 @@ final readonly class CacheInvalidationListener implements EventSubscriberInterfa
     }
 
     private function invalidateScopedVolume(
-        \LiveUX\FileManagerBundle\Config\VolumeConfig $volume,
+        VolumeConfig $volume,
         string $basePath,
     ): void {
         $rootCanonical = $this->pathNormalizer->buildCanonicalKey($volume, '', $basePath);
@@ -227,7 +228,7 @@ final readonly class CacheInvalidationListener implements EventSubscriberInterfa
         foreach ($this->configProvider->getProfileNames() as $profileName) {
             try {
                 $profile = $this->configProvider->getProfile($profileName);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 continue;
             }
             $profileBase = $profile->basePath;
@@ -395,7 +396,7 @@ final readonly class CacheInvalidationListener implements EventSubscriberInterfa
         if ($this->volumeRegistry !== null) {
             try {
                 return $this->volumeRegistry->getVolumesForProfile($profile);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Fall through to static config fallback below.
             }
         }
@@ -421,7 +422,7 @@ final readonly class CacheInvalidationListener implements EventSubscriberInterfa
         foreach ($profile->volumes as $volName) {
             try {
                 $volumes[] = $this->configProvider->getVolume($volName);
-            } catch (\Throwable) {
+            } catch (Throwable) {
             }
         }
 

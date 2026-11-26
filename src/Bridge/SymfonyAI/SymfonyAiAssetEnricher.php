@@ -75,10 +75,7 @@ final readonly class SymfonyAiAssetEnricher implements AssetEnricherInterface
 
         $normalizedMime = strtolower(trim($mimeType));
         if (!$this->supports($normalizedMime)) {
-            throw new FileManagerException(
-                sprintf('AI enrichment is not supported for MIME type "%s".', $normalizedMime),
-                'errors.ai_unsupported_type',
-            );
+            throw new FileManagerException(sprintf('AI enrichment is not supported for MIME type "%s".', $normalizedMime), 'errors.ai_unsupported_type');
         }
 
         $model = is_string($context['model'] ?? null) && trim($context['model']) !== ''

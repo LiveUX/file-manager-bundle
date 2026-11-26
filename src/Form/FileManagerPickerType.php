@@ -430,6 +430,7 @@ final class FileManagerPickerType extends AbstractType
 
     /**
      * @param list<string> $volumeUrlPrefixes
+     *
      * @return list<string>
      */
     private static function collectCandidatePrefixes(
@@ -497,7 +498,8 @@ final class FileManagerPickerType extends AbstractType
         }
     }
 
-    private static function isSafePickerValue(string $value, string $returnType = 'url'): bool {
+    private static function isSafePickerValue(string $value, string $returnType = 'url'): bool
+    {
         if (UnicodeHelper::hasForbiddenControls($value) || mb_strlen($value, 'UTF-8') > 2048) {
             return false;
         }

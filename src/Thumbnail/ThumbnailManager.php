@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Thumbnail;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
 use LiveUX\FileManagerBundle\Exception\FileManagerException;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use Psr\Log\LoggerInterface;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Contracts\Service\ResetInterface;
 
 final class ThumbnailManager implements ResetInterface
@@ -193,12 +197,12 @@ final class ThumbnailManager implements ResetInterface
         }
 
         $deleted = 0;
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($resolved, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($resolved, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if (!$file->isFile() || !$this->isManagedCacheFile($file)) {
                 continue;
@@ -219,7 +223,7 @@ final class ThumbnailManager implements ResetInterface
      * Only files this manager generated (`<hex-hash>.<image-ext>`) may ever be deleted from a cache directory,
      * so a misconfigured `cache_dir` can never wipe unrelated files.
      */
-    private function isManagedCacheFile(\SplFileInfo $file): bool
+    private function isManagedCacheFile(SplFileInfo $file): bool
     {
         return preg_match('/^(?:[0-9a-f]{32}|[0-9a-f]{64})\.(?:webp|jpe?g|png|gif|avif)$/i', $file->getFilename()) === 1;
     }
@@ -237,12 +241,12 @@ final class ThumbnailManager implements ResetInterface
         }
 
         $deleted = 0;
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($resolved, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($resolved, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if (!$file->isFile() || !$this->isManagedCacheFile($file)) {
                 continue;
@@ -275,12 +279,12 @@ final class ThumbnailManager implements ResetInterface
 
         $files = 0;
         $bytes = 0;
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($resolved, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::LEAVES_ONLY,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($resolved, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
-        /** @var \SplFileInfo $file */
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->isFile()) {
                 ++$files;
@@ -308,12 +312,12 @@ final class ThumbnailManager implements ResetInterface
 
     private function deleteEmptySubdirs(string $resolvedRoot): void
     {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($resolvedRoot, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($resolvedRoot, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -379,10 +383,7 @@ final class ThumbnailManager implements ResetInterface
         $strategy = (string) ($profile->thumbnail['on_missing_driver'] ?? 'fallback_original');
 
         if ($strategy === 'exception') {
-            throw new FileManagerException(sprintf(
-                'LiveUX FileManager thumbnail driver "%s" is not available on this server.',
-                $driverName,
-            ));
+            throw new FileManagerException(sprintf('LiveUX FileManager thumbnail driver "%s" is not available on this server.', $driverName));
         }
 
         if (!$this->missingDriverWarned) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Service;
 
+use DateTimeImmutable;
 use League\Flysystem\FilesystemOperator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
@@ -21,6 +22,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Throwable;
 
 /**
  * Generates and cryptographically verifies HMAC-signed, time-limited temporary share URLs
@@ -72,7 +74,7 @@ final readonly class ShareLinkService
         $this->fileSecurityGuard->assertAccessiblePath($cleanPath, $profile);
         $this->fileSecurityGuard->assertSafeFilename(PathNormalizer::basenameUtf8($cleanPath));
 
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
         $rawVolume = $this->volumeRegistry->getRawVolumeForProfile($profile, $volumeName);
         $usesUserToken = self::volumeUsesUserIdToken($rawVolume);
         $usesDateToken = self::volumeUsesDateTokens($rawVolume);
@@ -119,6 +121,7 @@ final readonly class ShareLinkService
             $params['d'] = $now->format('Y-m-d');
         }
 
+        // @phpstan-ignore function.alreadyNarrowedType
         $supportsNativeExpiration = method_exists($this->uriSigner, 'verify');
         if (!$supportsNativeExpiration) {
             $params['_expiration'] = $expiresAt;
@@ -158,6 +161,7 @@ final readonly class ShareLinkService
             throw new AccessDeniedException('Invalid or missing share link signature.', 'errors.share_link_invalid');
         }
 
+        // @phpstan-ignore function.alreadyNarrowedType
         if (method_exists($this->uriSigner, 'verify')) {
             try {
                 $this->uriSigner->verify($request);
@@ -184,12 +188,12 @@ final readonly class ShareLinkService
     {
         try {
             $size = $filesystem->fileSize($cleanPath);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $size = -1;
         }
         try {
             $mtime = $filesystem->lastModified($cleanPath);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $mtime = -1;
         }
 

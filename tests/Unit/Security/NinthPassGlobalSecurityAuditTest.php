@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
+use FilesystemIterator;
 use League\Flysystem\DirectoryListing;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemOperator;
@@ -39,7 +40,6 @@ use LiveUX\FileManagerBundle\Security\FileManagerSubject;
 use LiveUX\FileManagerBundle\Security\FileSecurityGuard;
 use LiveUX\FileManagerBundle\Security\PathNormalizer;
 use LiveUX\FileManagerBundle\Security\SvgSanitizer;
-use LiveUX\FileManagerBundle\Service\AssetUsageGuardService;
 use LiveUX\FileManagerBundle\Service\DirectoryCacheManager;
 use LiveUX\FileManagerBundle\Service\DirectoryLister;
 use LiveUX\FileManagerBundle\Service\DuplicateDetector;
@@ -57,9 +57,13 @@ use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
 use LiveUX\FileManagerBundle\Util\UnicodeHelper;
+use PDO;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionMethod;
 use ReflectionProperty;
+use SplFileInfo;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Command\Command;
@@ -99,11 +103,11 @@ final class NinthPassGlobalSecurityAuditTest extends TestCase
             return;
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -203,7 +207,7 @@ final class NinthPassGlobalSecurityAuditTest extends TestCase
 
     public function testDoctrineDbalMetadataStorageNfcNormalizesDeleteRelocateCopyAndCapsItemCache(): void
     {
-        if (!in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+        if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
             self::markTestSkipped('pdo_sqlite driver is required.');
         }
 
@@ -473,8 +477,8 @@ final class NinthPassGlobalSecurityAuditTest extends TestCase
 
         $trashRoot = $this->tempDir . '/.trash';
         $seedParent = null;
-        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($trashRoot, \FilesystemIterator::SKIP_DOTS));
-        /** @var \SplFileInfo $item */
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($trashRoot, FilesystemIterator::SKIP_DOTS));
+        /** @var SplFileInfo $item */
         foreach ($it as $item) {
             if ($item->isFile() && $item->getFilename() === 'seed.txt') {
                 $seedParent = $item->getPath();

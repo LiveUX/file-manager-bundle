@@ -8,7 +8,6 @@ use LiveUX\FileManagerBundle\Form\FileManagerPickerType;
 use LiveUX\FileManagerBundle\Theme\FileManagerThemes;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\Test\TypeTestCase;

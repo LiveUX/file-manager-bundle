@@ -23,6 +23,7 @@ use LiveUX\FileManagerBundle\Storage\VolumeRegistry;
 use LiveUX\FileManagerBundle\Util\ByteSizeParser;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 
 final class TrashManager
 {
@@ -65,7 +66,9 @@ final class TrashManager
      * FIFO eviction planning reads `.meta.json` sidecars ONCE per volume instead of O(B * T) times.
      *
      * @template T
+     *
      * @param callable(): T $callback
+     *
      * @return T
      */
     public function withBulkTrashBatch(callable $callback): mixed
@@ -112,11 +115,7 @@ final class TrashManager
         $entry = $this->withTrashLock($profile, $volume, function () use ($profile, $volume, $filesystem, $cleanPath, $deletedBy, $precomputedSize, &$pendingPurgedEvents): TrashEntry {
             $isFolder = $filesystem->directoryExists($cleanPath);
             if (!$isFolder && !$filesystem->fileExists($cleanPath)) {
-                throw new FileManagerException(
-                    sprintf('Item "%s" does not exist.', $cleanPath),
-                    'errors.item_not_found',
-                    ['%path%' => $cleanPath],
-                );
+                throw new FileManagerException(sprintf('Item "%s" does not exist.', $cleanPath), 'errors.item_not_found', ['%path%' => $cleanPath]);
             }
 
             $size = $precomputedSize !== null
@@ -135,10 +134,10 @@ final class TrashManager
                     $filesystem->createDirectory($entryDir);
                 }
                 $this->moveItem($filesystem, $volume, $cleanPath, $payloadPath, $isFolder);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 try {
                     $filesystem->deleteDirectory($entryDir);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     // Best-effort cleanup of partially copied non-local folder before source removal.
                 }
                 throw $e;
@@ -243,11 +242,7 @@ final class TrashManager
             $entry = $this->resolveEntry($filesystem, $volume, $entryDir, $safeId, null, $profile->basePath);
 
             if ($entry === null) {
-                throw new FileManagerException(
-                    sprintf('Trash entry "%s" was not found.', $safeId),
-                    'errors.trash_entry_not_found',
-                    ['%id%' => $safeId],
-                );
+                throw new FileManagerException(sprintf('Trash entry "%s" was not found.', $safeId), 'errors.trash_entry_not_found', ['%id%' => $safeId]);
             }
 
             $normalizedOrig = $this->pathNormalizer->normalize($entry->originalPath);
@@ -271,11 +266,7 @@ final class TrashManager
                 ? $filesystem->directoryExists($payloadPath)
                 : $filesystem->fileExists($payloadPath);
             if (!$payloadExists) {
-                throw new FileManagerException(
-                    sprintf('Trash entry "%s" was not found.', $safeId),
-                    'errors.trash_entry_not_found',
-                    ['%id%' => $safeId],
-                );
+                throw new FileManagerException(sprintf('Trash entry "%s" was not found.', $safeId), 'errors.trash_entry_not_found', ['%id%' => $safeId]);
             }
 
             $targetPath = $this->resolveUniqueRestorePath($filesystem, $normalizedOrig, $profile, $entry->isFolder);
@@ -298,11 +289,7 @@ final class TrashManager
                     }
                     $acc = $acc === '' ? $seg : $acc . '/' . $seg;
                     if ($filesystem->fileExists($acc)) {
-                        throw new FileManagerException(
-                            sprintf('Target "%s" already exists in destination.', PathNormalizer::basenameUtf8($acc)),
-                            'errors.target_exists',
-                            ['%name%' => PathNormalizer::basenameUtf8($acc)],
-                        );
+                        throw new FileManagerException(sprintf('Target "%s" already exists in destination.', PathNormalizer::basenameUtf8($acc)), 'errors.target_exists', ['%name%' => PathNormalizer::basenameUtf8($acc)]);
                     }
                 }
             }
@@ -397,7 +384,7 @@ final class TrashManager
                     if ($cleanOrig !== '' && !$filesystem->fileExists($cleanOrig) && !$filesystem->directoryExists($cleanOrig)) {
                         $legacyOrigCanonical = $this->pathNormalizer->buildCanonicalKey($volume, $cleanOrig, $profile->basePath);
                     }
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     $legacyOrigCanonical = null;
                 }
             }
@@ -461,7 +448,7 @@ final class TrashManager
     {
         try {
             $cleanOrig = $this->pathNormalizer->normalize($originalPath);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
 
@@ -515,11 +502,7 @@ final class TrashManager
 
         // An item larger than the whole quota can never fit: refuse before purging any unrelated entries.
         if ($incomingBytes > $maxBytes) {
-            throw new FileManagerException(
-                sprintf('Item exceeds the trash size limit (%s). Use permanent delete instead.', $rawMaxSize),
-                'errors.trash_item_too_large',
-                ['%max%' => $rawMaxSize],
-            );
+            throw new FileManagerException(sprintf('Item exceeds the trash size limit (%s). Use permanent delete instead.', $rawMaxSize), 'errors.trash_item_too_large', ['%max%' => $rawMaxSize]);
         }
 
         $volume = $this->volumeRegistry->getVolumeForProfile($profile, $volumeName);
@@ -549,11 +532,7 @@ final class TrashManager
         }
 
         if (($currentBytes + $incomingBytes) > $maxBytes) {
-            throw new AccessDeniedException(
-                'Trash capacity is full and you do not have permission to purge older trash items.',
-                'errors.trash_item_too_large',
-                ['%max%' => $rawMaxSize],
-            );
+            throw new AccessDeniedException('Trash capacity is full and you do not have permission to purge older trash items.', 'errors.trash_item_too_large', ['%max%' => $rawMaxSize]);
         }
 
         return $evictIds;
@@ -613,7 +592,9 @@ final class TrashManager
      * restores sharing the same originalPath cannot overwrite each other and FIFO evictions stay atomic.
      *
      * @template T
+     *
      * @param callable(): T $callback
+     *
      * @return T
      */
     private function withTrashLock(ProfileConfig $profile, VolumeConfig $volume, callable $callback): mixed
@@ -713,7 +694,7 @@ final class TrashManager
     ): bool {
         try {
             $cleanOrig = $this->pathNormalizer->normalize($old->originalPath);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
 
@@ -732,7 +713,7 @@ final class TrashManager
                 }
                 $payloadPath = $trashDir . '/' . $old->id . '/' . $safePayloadName;
                 $this->validateTrashedFolderContentsForPurge($filesystem, $payloadPath, $cleanOrig, $profile, $volumeName);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 return false;
             }
         }
@@ -1066,11 +1047,7 @@ final class TrashManager
         foreach ($filesystem->listContents($source, true) as $attr) {
             ++$count;
             if ($count > self::MAX_TRASH_MOVE_ITEMS) {
-                throw new FileManagerException(
-                    sprintf('Folder exceeds maximum move item limit (%d).', self::MAX_TRASH_MOVE_ITEMS),
-                    'errors.copy_limit_exceeded',
-                    ['%max%' => self::MAX_TRASH_MOVE_ITEMS],
-                );
+                throw new FileManagerException(sprintf('Folder exceeds maximum move item limit (%d).', self::MAX_TRASH_MOVE_ITEMS), 'errors.copy_limit_exceeded', ['%max%' => self::MAX_TRASH_MOVE_ITEMS]);
             }
 
             $itemPath = $this->pathNormalizer->normalize($attr->path());
@@ -1120,11 +1097,7 @@ final class TrashManager
         $count = 0;
         foreach ($filesystem->listContents($payloadPath, true) as $attr) {
             if (++$count > self::MAX_TRASH_MOVE_ITEMS) {
-                throw new FileManagerException(
-                    sprintf('Folder exceeds maximum trash item limit (%d).', self::MAX_TRASH_MOVE_ITEMS),
-                    'errors.copy_limit_exceeded',
-                    ['%max%' => self::MAX_TRASH_MOVE_ITEMS],
-                );
+                throw new FileManagerException(sprintf('Folder exceeds maximum trash item limit (%d).', self::MAX_TRASH_MOVE_ITEMS), 'errors.copy_limit_exceeded', ['%max%' => self::MAX_TRASH_MOVE_ITEMS]);
             }
             $itemPath = $this->pathNormalizer->normalize($attr->path());
             $relative = ltrim(substr($itemPath, strlen($payloadPath)), '/');
@@ -1149,11 +1122,7 @@ final class TrashManager
         foreach ($filesystem->listContents($payloadPath, true) as $attr) {
             ++$count;
             if ($count > self::MAX_TRASH_MOVE_ITEMS) {
-                throw new FileManagerException(
-                    sprintf('Folder exceeds maximum trash item limit (%d).', self::MAX_TRASH_MOVE_ITEMS),
-                    'errors.copy_limit_exceeded',
-                    ['%max%' => self::MAX_TRASH_MOVE_ITEMS],
-                );
+                throw new FileManagerException(sprintf('Folder exceeds maximum trash item limit (%d).', self::MAX_TRASH_MOVE_ITEMS), 'errors.copy_limit_exceeded', ['%max%' => self::MAX_TRASH_MOVE_ITEMS]);
             }
 
             $itemPath = $this->pathNormalizer->normalize($attr->path());

@@ -5,24 +5,23 @@ declare(strict_types=1);
 namespace LiveUX\FileManagerBundle\Tests\Unit\Security;
 
 use Doctrine\DBAL\DriverManager;
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Config\ConfigProviderInterface;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
 use LiveUX\FileManagerBundle\Config\ProfileConfig;
 use LiveUX\FileManagerBundle\Config\VolumeConfig;
-use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\Controller\ApiController;
 use LiveUX\FileManagerBundle\Controller\ShareController;
 use LiveUX\FileManagerBundle\Controller\ThumbnailController;
 use LiveUX\FileManagerBundle\DependencyInjection\Configuration;
-use LiveUX\FileManagerBundle\Exception\FileManagerException;
+use LiveUX\FileManagerBundle\EventListener\MetadataSyncListener;
 use LiveUX\FileManagerBundle\Exception\InvalidPathException;
 use LiveUX\FileManagerBundle\Exception\UploadValidationException;
 use LiveUX\FileManagerBundle\Form\FileManagerPickerType;
 use LiveUX\FileManagerBundle\Metadata\FolderMetadata;
 use LiveUX\FileManagerBundle\Metadata\JsonFileMetadataStorage;
 use LiveUX\FileManagerBundle\Metadata\NullMetadataStorage;
-use LiveUX\FileManagerBundle\EventListener\MetadataSyncListener;
 use LiveUX\FileManagerBundle\Security\CsrfRequestValidator;
 use LiveUX\FileManagerBundle\Security\FileManagerPermissions;
 use LiveUX\FileManagerBundle\Security\FileSecurityGuard;
@@ -42,6 +41,9 @@ use LiveUX\FileManagerBundle\Thumbnail\Driver\GdThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\Driver\ImagickThumbnailDriver;
 use LiveUX\FileManagerBundle\Thumbnail\ThumbnailManager;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -76,11 +78,11 @@ final class FourthPassAuditTest extends TestCase
         if (!is_dir($this->tempDir)) {
             return;
         }
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
-        /** @var \SplFileInfo $entry */
+        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
             if ($entry->isDir()) {
                 @rmdir($entry->getPathname());
@@ -244,8 +246,10 @@ final class FourthPassAuditTest extends TestCase
         $resolver = new DynamicPathResolver($security);
         $registry = new VolumeRegistry($provider, new FlysystemStorageFactory($resolver), $resolver);
         $signer = new UriSigner('share-hmac-test-secret');
-        $urlGen = new class () implements UrlGeneratorInterface {
-            public function setContext(RequestContext $context): void {}
+        $urlGen = new class implements UrlGeneratorInterface {
+            public function setContext(RequestContext $context): void
+            {
+            }
 
             public function getContext(): RequestContext
             {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LiveUX\FileManagerBundle\Tests\Unit\AI;
 
+use FilesystemIterator;
 use LiveUX\FileManagerBundle\AI\AssetEnricherInterface;
 use LiveUX\FileManagerBundle\AI\AssetEnrichmentResult;
 use LiveUX\FileManagerBundle\AI\NullAssetEnricher;
@@ -51,7 +52,7 @@ final class AssetEnrichmentTest extends TestCase
             return;
         }
         $it = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->tempDir, \FilesystemIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
         /** @var SplFileInfo $file */
@@ -224,7 +225,7 @@ final class AssetEnrichmentTest extends TestCase
 
     private function createFakeEnricher(): AssetEnricherInterface
     {
-        return new class() implements AssetEnricherInterface {
+        return new class implements AssetEnricherInterface {
             public function supports(string $mimeType): bool
             {
                 return str_starts_with($mimeType, 'text/') || str_starts_with($mimeType, 'image/');

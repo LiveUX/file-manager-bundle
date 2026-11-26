@@ -17,6 +17,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Throwable;
 
 #[AsCommand(
     name: 'file-manager:doctor',
@@ -75,7 +76,7 @@ final class DoctorCommand extends Command
             $profile = $this->configProvider->getProfile($profileName);
             try {
                 $volumes = $this->volumeRegistry->getVolumesForProfile($profile);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $hasErrors = true;
                 $rows[] = [$profileName, '-', '-', '-', 'ERROR', $e->getMessage()];
                 continue;
@@ -194,12 +195,12 @@ final class DoctorCommand extends Command
             $ms = (int) round((microtime(true) - $start) * 1000);
 
             return ['OK', sprintf('%s — Connected (%dms)', $target, $ms)];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return ['ERROR', sprintf('%s — %s', $target, $this->diagnoseRemoteError($e))];
         }
     }
 
-    private function diagnoseRemoteError(\Throwable $exception): string
+    private function diagnoseRemoteError(Throwable $exception): string
     {
         $combined = $exception->getMessage();
         $prev = $exception->getPrevious();

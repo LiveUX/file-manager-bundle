@@ -8,7 +8,6 @@ use League\Flysystem\DirectoryListing as FlysystemListing;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemOperator;
 use LiveUX\FileManagerBundle\Config\DynamicPathResolver;
-use LiveUX\FileManagerBundle\Config\VolumeConfig;
 use LiveUX\FileManagerBundle\Config\YamlConfigProvider;
 use LiveUX\FileManagerBundle\Event\FileDeletedEvent;
 use LiveUX\FileManagerBundle\EventListener\CacheInvalidationListener;

@@ -8,6 +8,7 @@ use Doctrine\DBAL\DriverManager;
 use LiveUX\FileManagerBundle\Bridge\Doctrine\DoctrineDbalMetadataStorage;
 use LiveUX\FileManagerBundle\Metadata\FolderMetadata;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class DoctrineDbalMetadataStorageTest extends TestCase
 {
@@ -71,7 +72,7 @@ final class DoctrineDbalMetadataStorageTest extends TestCase
 
     public function testInvalidTableNameThrowsException(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         new DoctrineDbalMetadataStorage(null, 'default', 'bad; DROP TABLE users;--');
     }
 }
