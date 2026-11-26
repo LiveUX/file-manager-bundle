@@ -105,7 +105,9 @@ final class MaintenanceCommandsTest extends TestCase
 
         // 7. Orphan cleanup deletes stale file while keeping live beta thumbnail intact
         $orphanDir = $this->sharedThumbDir . DIRECTORY_SEPARATOR . 'ff';
-        mkdir($orphanDir, 0775, true);
+        if (!is_dir($orphanDir)) {
+            mkdir($orphanDir, 0775, true);
+        }
         $orphanFile = $orphanDir . DIRECTORY_SEPARATOR . 'ff' . str_repeat('a', 30) . '.webp';
         file_put_contents($orphanFile, 'stale-thumb');
         self::assertSame(2, $env['thumbs']->collectCacheStats($this->sharedThumbDir)['files']);
