@@ -10,7 +10,18 @@ This project adheres to [Semantic Versioning](https://semver.org/) and follows [
 [Unreleased]
 ------------
 
-### Added
+0.1.1 (2026-11-26)
+------------------
+
+### Fixed
+ * **CI & Dependency Compatibility:** Added `"psr/log": "^3.0"` to `require` (fixing `--prefer-lowest` installs on Symfony 6.4 LTS & 7.2), added `"doctrine/dbal": "^3.9|^4.0"` to `require-dev`, enabled `pdo_sqlite` in GitHub Actions CI, and achieved **7/7 green CI** (PHP 8.3/8.4 × Symfony 6.4/7.2/7.4/8.0, PHPStan Level 8, PHP-CS-Fixer, Node 20/22).
+ * **Test Portability:** Fixed Linux case-sensitive folder assertion in `TwelfthPassGlobalSecurityAuditTest` and Symfony 6.4 LTS `UriSigner` compatibility in `ShareLinkServiceTest` & `TenthPassGlobalSecurityAuditTest`.
+ * **TOCTOU Hardening:** Added `clearstatcache(true, $lockDir)` before the post-`mkdir` symlink re-check in `UploadManager`.
+
+### Documentation
+ * Embedded the full 14-chapter 1080p YouTube showcase video across root `README.md` and all 12 documentation languages (`docs/{en,tr,fr,de,es,ar,it,pt,nl,pl,ja,zh_CN}/README.md`).
+
+### Included Since 0.1.0 Preview
  * **Symfony 6.4 LTS Compatibility (`^6.4 | ^7.2 | ^8.0`, PHP `>= 8.3`):** Added dual `UriSigner` support in `ShareLinkService` (`verify()` on Symfony 7.1+/8.x and HMAC-signed `_expiration` + `checkRequest()` fallback on Symfony 6.4 LTS) and added `PHP 8.3 + Symfony 6.4.*` to GitHub Actions CI.
  * **6 New Hardened WYSIWYG, Block & Page Builder Adapters (9 Editors Total):** Added zero-dependency `quill_adapter.js` (Quill 1/2), `trix_adapter.js` (Trix / EasyAdmin `TextEditorField`), `summernote_adapter.js` (Summernote), `editorjs_adapter.js` (Editor.js), `grapesjs_adapter.js` (GrapesJS custom Asset Manager & canvas insertion), and `lexical_adapter.js` (Meta Lexical `INSERT_IMAGE_COMMAND` / `TOGGLE_LINK_COMMAND`) backed by shared fail-closed `_url_guard.js` XSS/path validation and unit tests.
  * **Compact JSON Wire Format (`compact=1`) & Smart Hybrid Pagination (`hybridLimit=500`):** Reduces `/api/list` JSON payloads by ~55–68% via shared `urlBases` and omitted default/null fields; directories with `<= 500` items keep 0ms client-side search/sort/pagination while larger directories automatically switch to server-side pagination in both `ApiController::list()` and SSR `BrowserComponent`.
